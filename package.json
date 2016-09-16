@@ -1,0 +1,19 @@
+{
+  "name": "altspace-diorama",
+  "version": "1.0.0",
+  "description": "System for running multiple micro-apps out of a single AltspaceVR enclosure",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stevenvergenz/altspace-diorama.git"
+  },
+  "author": "Steven Vergenz <vergenzs@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stevenvergenz/altspace-diorama/issues"
+  },
+  "homepage": "https://github.com/stevenvergenz/altspace-diorama#readme"
+}
