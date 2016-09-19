@@ -1,1 +1,203 @@
-"use strict";!function(e){function t(e,t){function n(e){e&&i--,0===i&&t(o)}var i=0,o={};e.models&&(o.models={},Object.keys(e.models).forEach(function(t){var a=e.models[t];if(r.models[a])o.models[t]=r.models[a].clone();else if(/\.gltf$/.test(a)){i++;var s=new THREE.glTFLoader;s.load(a,function(e){r.models[a]=e.scene.children[0].children[0],o.models[t]=r.models[a].clone(),n(!0)})}})),e.textures&&(o.textures={},Object.keys(e.textures).forEach(function(t){var a=e.textures[t];if(r.textures[a])o.textures[t]=r.textures[a].clone();else{i++;var s=new THREE.TextureLoader;s.load(a,function(e){r.textures[a]=e,o.textures[t]=r.textures[a].clone(),n(!0)},null,function(e){console.error(e),n(!0)})}})),e.videos&&(o.videos={},Object.keys(e.videos).forEach(function(t){var n=e.videos[t];if(r.videos[n])o.videos[t]=r.videos[n].clone();else{var i=document.createElement("video");i.autoplay=!0,i.loop=!0,i.src=n,i.style.display="none",document.body.appendChild(i);var a=new THREE.VideoTexture(i);a.minFilter=THREE.LinearFilter,a.magFilter=THREE.LinearFilter,a.format=THREE.RGBFormat,r.videos[n]=a,o.videos[t]=r.videos[n]}})),n()}var r={models:{},textures:{},videos:{}};e.loadAssets=t}(window.Diorama=window.Diorama||{});var _slicedToArray=function(){function e(e,t){var r=[],n=!0,i=!1,o=void 0;try{for(var a,s=e[Symbol.iterator]();!(n=(a=s.next()).done)&&(r.push(a.value),!t||r.length!==t);n=!0);}catch(e){i=!0,o=e}finally{try{!n&&s.return&&s.return()}finally{if(i)throw o}}return r}return function(t,r){if(Array.isArray(t))return t;if(Symbol.iterator in Object(t))return e(t,r);throw new TypeError("Invalid attempt to destructure non-iterable instance")}}();!function(e){var t,r,n,i=new THREE.Scene;e.load=function(o){function a(){o.forEach(function(t){var r=new THREE.Object3D;i.add(r),e.loadAssets(t.assets,function(e){t.initialize(n,r,e)})}),window.requestAnimationFrame(function e(n){window.requestAnimationFrame(e),i.updateAllBehaviors(),t.render(i,r)})}altspace.inClient?(t=altspace.getThreeJSRenderer(),Promise.all([altspace.getEnclosure(),altspace.getSpace()]).then(function(e){var t=_slicedToArray(e,2),r=t[0],o=t[1];n=Object.freeze({innerHeight:r.innerHeight,innerWidth:r.innerWidth,innerDepth:r.innerDepth,pixelsPerMeter:r.pixelsPerMeter,sid:o.sid,name:o.name,templateSid:o.templateSid}),i.scale.multiplyScalar(r.pixelsPerMeter),a()})):(t=new THREE.WebGLRenderer,t.setSize(720,720),t.setClearColor(8947848),document.body.appendChild(t.domElement),r=new THREE.PerspectiveCamera(90,1,.01,1e4),r.position.set(0,-10,20),r.rotation.set(0,Math.PI,0),i.add(r),altspace.utilities.shims.cursor.init(i,r,{renderer:t}),n=Object.freeze({innerWidth:1024,innerHeight:1024,innerDepth:1024,pixelsPerMeter:1024/3,sid:"browser",name:"browser",templateSid:"browser"}),a())}}(window.Diorama=window.Diorama||{});
+'use strict';
+
+(function (exports) {
+	var cache = {
+		models: {},
+		textures: {},
+		videos: {}
+	};
+
+	// loads an asset manifest from a vignette
+	function loadAssets(manifest, callback) {
+		var waiting = 0;
+		var payload = {};
+
+		// load models
+		if (manifest.models) {
+			payload.models = {};
+
+			// loop over each entry in the model manifest
+			Object.keys(manifest.models).forEach(function (id) {
+				var url = manifest.models[id];
+
+				// check cache for asset
+				if (cache.models[url]) {
+					payload.models[id] = cache.models[url].clone();
+				}
+
+				// load gltf models
+				else if (/\.gltf$/.test(url)) {
+						// increment wait count
+						waiting++;
+
+						// start loader
+						var loader = new THREE.glTFLoader();
+						loader.load(url, function (result) {
+							// write model to cache and payload
+							cache.models[url] = result.scene.children[0].children[0];
+							payload.models[id] = cache.models[url].clone();
+
+							// finish
+							checkComplete(true);
+						});
+					}
+			});
+		}
+
+		if (manifest.textures) {
+			payload.textures = {};
+
+			// loop over each entry in the texture manifest
+			Object.keys(manifest.textures).forEach(function (id) {
+				var url = manifest.textures[id];
+
+				// check cache for asset
+				if (cache.textures[url]) {
+					payload.textures[id] = cache.textures[url].clone();
+				}
+
+				// load textures
+				else {
+						// increment wait count
+						waiting++;
+
+						// start loader
+						var loader = new THREE.TextureLoader();
+						loader.load(url, function (texture) {
+							// write texture to cache and payload
+							cache.textures[url] = texture;
+							payload.textures[id] = cache.textures[url].clone();
+
+							// finish
+							checkComplete(true);
+						}, null, function (err) {
+							console.error(err);
+							checkComplete(true);
+						});
+					}
+			});
+		}
+
+		if (manifest.videos) {
+			payload.videos = {};
+
+			// loop over each entry in the texture manifest
+			Object.keys(manifest.videos).forEach(function (id) {
+				var url = manifest.videos[id];
+
+				// check cache for asset
+				if (cache.videos[url]) {
+					payload.videos[id] = cache.videos[url].clone();
+				}
+
+				// load videos
+				else {
+						// start loader
+						var vidSrc = document.createElement('video');
+						vidSrc.autoplay = true;
+						vidSrc.loop = true;
+						vidSrc.src = url;
+						vidSrc.style.display = 'none';
+						document.body.appendChild(vidSrc);
+
+						var tex = new THREE.VideoTexture(vidSrc);
+						tex.minFilter = THREE.LinearFilter;
+						tex.magFilter = THREE.LinearFilter;
+						tex.format = THREE.RGBFormat;
+
+						cache.videos[url] = tex;
+						payload.videos[id] = cache.videos[url];
+					}
+			});
+		}
+
+		checkComplete();
+
+		function checkComplete(done) {
+			if (done) waiting--;
+			if (waiting === 0) callback(payload);
+		}
+	}
+
+	exports.loadAssets = loadAssets;
+})(window.Diorama = window.Diorama || {});
+'use strict';
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+(function (Diorama) {
+	var renderer, camera, env;
+	var scene = new THREE.Scene();
+
+	Diorama.load = function (modules) {
+		// set up renderer and scale
+		if (altspace.inClient) {
+			renderer = altspace.getThreeJSRenderer();
+			Promise.all([altspace.getEnclosure(), altspace.getSpace()]).then(function (_ref) {
+				var _ref2 = _slicedToArray(_ref, 2);
+
+				var e = _ref2[0];
+				var s = _ref2[1];
+
+				env = Object.freeze({
+					innerHeight: e.innerHeight,
+					innerWidth: e.innerWidth,
+					innerDepth: e.innerDepth,
+					pixelsPerMeter: e.pixelsPerMeter,
+					sid: s.sid,
+					name: s.name,
+					templateSid: s.templateSid
+				});
+
+				scene.scale.multiplyScalar(e.pixelsPerMeter);
+				start();
+			});
+		} else {
+			// set up preview renderer, in case we're out of world
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(720, 720);
+			renderer.setClearColor(0x888888);
+			document.body.appendChild(renderer.domElement);
+
+			camera = new THREE.PerspectiveCamera(90, 1, 0.01, 10000);
+			camera.position.set(0, -10, 20);
+			camera.rotation.set(0, Math.PI, 0);
+			scene.add(camera);
+
+			// set up cursor emulation
+			altspace.utilities.shims.cursor.init(scene, camera, { renderer: renderer });
+
+			// stub environment
+			env = Object.freeze({
+				innerWidth: 1024,
+				innerHeight: 1024,
+				innerDepth: 1024,
+				pixelsPerMeter: 1024 / 3,
+				sid: 'browser',
+				name: 'browser',
+				templateSid: 'browser'
+			});
+
+			start();
+		}
+
+		function start() {
+			// construct dioramas
+			modules.forEach(function (module) {
+				var root = new THREE.Object3D();
+				scene.add(root);
+
+				Diorama.loadAssets(module.assets, function (results) {
+					module.initialize(env, root, results);
+				});
+			});
+
+			// start animating
+			window.requestAnimationFrame(function animate(timestamp) {
+				window.requestAnimationFrame(animate);
+				scene.updateAllBehaviors();
+				renderer.render(scene, camera);
+			});
+		}
+	};
+})(window.Diorama = window.Diorama || {});
