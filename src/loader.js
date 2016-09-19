@@ -125,25 +125,6 @@
 
 					cache.videos[url] = tex;
 					payload.videos[id] = cache.videos[url];
-
-					/*var loader = new THREE.TextureLoader();
-					loader.load(url,
-						function(texture)
-						{
-							// write texture to cache and payload
-							cache.videos[url] = texture;
-							payload.videos[id] = cache.videos[url].clone();
-
-							// finish
-							checkComplete(true);
-						},
-						null,
-						function(err)
-						{
-							console.error(err);
-							checkComplete(true);
-						}
-					);*/
 				}
 			});
 

@@ -5,7 +5,7 @@
 	var renderer, camera, env;
 	var scene = new THREE.Scene();
 
-	Diorama.load = function(...modules)
+	Diorama.load = function(modules)
 	{
 		// set up renderer and scale
 		if(altspace.inClient)

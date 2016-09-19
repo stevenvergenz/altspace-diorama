@@ -15,5 +15,13 @@
   "bugs": {
     "url": "https://github.com/stevenvergenz/altspace-diorama/issues"
   },
-  "homepage": "https://github.com/stevenvergenz/altspace-diorama#readme"
+  "homepage": "https://github.com/stevenvergenz/altspace-diorama#readme",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.14.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-concat": "^2.6.0",
+    "gulp-uglify": "^2.0.0",
+    "pump": "^1.0.1"
+  }
 }
