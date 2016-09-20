@@ -19,8 +19,6 @@ var Diorama = function () {
 		};
 
 		self.scene = new THREE.Scene();
-		self.previewCamera = new THREE.OrthographicCamera();
-		self.scene.add(self.previewCamera);
 
 		// set up renderer and scale
 		if (altspace.inClient) {
@@ -46,9 +44,13 @@ var Diorama = function () {
 		} else {
 			// set up preview renderer, in case we're out of world
 			self.renderer = new THREE.WebGLRenderer();
-			self.renderer.setSize(720, 720);
+			self.renderer.setSize(window.innerWidth, window.innerHeight);
 			self.renderer.setClearColor(0x888888);
 			document.body.appendChild(self.renderer.domElement);
+
+			self.previewCamera = new Diorama.PreviewCamera();
+			self.scene.add(self.previewCamera);
+			self.previewCamera.registerHooks(self.renderer);
 
 			// set up cursor emulation
 			altspace.utilities.shims.cursor.init(self.scene, self.previewCamera, { renderer: self.renderer });
@@ -182,3 +184,66 @@ var Diorama = function () {
 		return Promise.resolve(tex);
 	};
 }
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
+	_inherits(PreviewCamera, _THREE$OrthographicCa);
+
+	function PreviewCamera() {
+		var focus = arguments.length <= 0 || arguments[0] === undefined ? new THREE.Vector3() : arguments[0];
+		var viewSize = arguments.length <= 1 || arguments[1] === undefined ? 20 : arguments[1];
+		var lookDirection = arguments.length <= 2 || arguments[2] === undefined ? new THREE.Vector3(0, -1, 0) : arguments[2];
+
+		_classCallCheck(this, PreviewCamera);
+
+		var _this = _possibleConstructorReturn(this, (PreviewCamera.__proto__ || Object.getPrototypeOf(PreviewCamera)).call(this, -1, 1, 1, -1, .1, 400));
+
+		_this.viewSize = viewSize;
+		_this.focus = focus;
+		_this.lookDirection = lookDirection;
+		return _this;
+	}
+
+	_createClass(PreviewCamera, [{
+		key: 'registerHooks',
+		value: function registerHooks(renderer) {
+			this.renderer = renderer;
+			document.body.style.margin = '0';
+
+			this.resizeViewport();
+		}
+	}, {
+		key: 'resizeViewport',
+		value: function resizeViewport() {
+			// resize canvas
+			this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+			// compute window dimensions from view size
+			var ratio = window.innerWidth / window.innerHeight;
+			var height = Math.sqrt(this.viewSize * this.viewSize / (ratio * ratio + 1));
+			var width = ratio * height;
+
+			// set frustrum edges
+			this.left = -width / 2;
+			this.right = width / 2;
+			this.top = height / 2;
+			this.bottom = -height / 2;
+
+			this.updateProjectionMatrix();
+
+			// update position
+			this.position.copy(this.focus).sub(this.lookDirection.clone().multiplyScalar(200));
+			this.lookAt(this.focus);
+		}
+	}]);
+
+	return PreviewCamera;
+}(THREE.OrthographicCamera);

@@ -7,7 +7,7 @@ const gulp = require('gulp'),
 
 gulp.task('default', function(cb){
 	pump([
-		gulp.src(['./src/main.js','./src/loader.js']),
+		gulp.src(['./src/main.js','./src/loader.js','./src/camera.js']),
 		babel({presets: ['es2015']}),
 		concat('diorama.js'),
 		gulp.dest('./dist/'),

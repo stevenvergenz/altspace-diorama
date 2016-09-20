@@ -13,8 +13,6 @@ class Diorama
 		};
 
 		self.scene = new THREE.Scene();
-		self.previewCamera = new THREE.OrthographicCamera();
-		self.scene.add(self.previewCamera);
 
 		// set up renderer and scale
 		if(altspace.inClient)
@@ -39,10 +37,14 @@ class Diorama
 		{
 			// set up preview renderer, in case we're out of world
 			self.renderer = new THREE.WebGLRenderer();
-			self.renderer.setSize(720, 720);
+			self.renderer.setSize(window.innerWidth, window.innerHeight);
 			self.renderer.setClearColor( 0x888888 );
 			document.body.appendChild(self.renderer.domElement);
 		
+			self.previewCamera = new Diorama.PreviewCamera();
+			self.scene.add(self.previewCamera);
+			self.previewCamera.registerHooks(self.renderer);
+
 			// set up cursor emulation
 			altspace.utilities.shims.cursor.init(self.scene, self.previewCamera, {renderer: self.renderer});
 		
