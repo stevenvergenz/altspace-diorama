@@ -10,26 +10,28 @@ var Diorama = function () {
 	function Diorama() {
 		_classCallCheck(this, Diorama);
 
-		this.assetCache = {
+		var self = this;
+
+		self.assetCache = {
 			models: {},
 			textures: {},
 			videos: {}
 		};
 
-		this.scene = new THREE.Scene();
-		this.previewCamera = new THREE.OrthographicCamera();
-		this.scene.add(this.previewCamera);
+		self.scene = new THREE.Scene();
+		self.previewCamera = new THREE.OrthographicCamera();
+		self.scene.add(self.previewCamera);
 
 		// set up renderer and scale
 		if (altspace.inClient) {
-			this.renderer = altspace.getThreeJSRenderer();
+			self.renderer = altspace.getThreeJSRenderer();
 			Promise.all([altspace.getEnclosure(), altspace.getSpace()]).then(function (_ref) {
 				var _ref2 = _slicedToArray(_ref, 2);
 
 				var e = _ref2[0];
 				var s = _ref2[1];
 
-				this.env = Object.freeze({
+				self.env = Object.freeze({
 					innerHeight: e.innerHeight,
 					innerWidth: e.innerWidth,
 					innerDepth: e.innerDepth,
@@ -39,20 +41,20 @@ var Diorama = function () {
 					templateSid: s.templateSid
 				});
 
-				this.scene.scale.multiplyScalar(e.pixelsPerMeter);
+				self.scene.scale.multiplyScalar(e.pixelsPerMeter);
 			});
 		} else {
 			// set up preview renderer, in case we're out of world
-			this.renderer = new THREE.WebGLRenderer();
-			this.renderer.setSize(720, 720);
-			this.renderer.setClearColor(0x888888);
-			document.body.appendChild(this.renderer.domElement);
+			self.renderer = new THREE.WebGLRenderer();
+			self.renderer.setSize(720, 720);
+			self.renderer.setClearColor(0x888888);
+			document.body.appendChild(self.renderer.domElement);
 
 			// set up cursor emulation
-			altspace.utilities.shims.cursor.init(scene, camera, { renderer: renderer });
+			altspace.utilities.shims.cursor.init(self.scene, self.previewCamera, { renderer: self.renderer });
 
 			// stub environment
-			this.env = Object.freeze({
+			self.env = Object.freeze({
 				innerWidth: 1024,
 				innerHeight: 1024,
 				innerDepth: 1024,
@@ -67,25 +69,28 @@ var Diorama = function () {
 	_createClass(Diorama, [{
 		key: 'start',
 		value: function start() {
+			var self = this;
+
+			// construct dioramas
+
 			for (var _len = arguments.length, modules = Array(_len), _key = 0; _key < _len; _key++) {
 				modules[_key] = arguments[_key];
 			}
 
-			// construct dioramas
 			modules.forEach(function (module) {
 				var root = new THREE.Object3D();
-				this.scene.add(root);
+				self.scene.add(root);
 
-				Diorama.loadAssets(module.assets, function (results) {
-					module.initialize(env, root, results);
+				self.loadAssets(module.assets).then(function (results) {
+					module.initialize(self.env, root, results);
 				});
 			});
 
 			// start animating
 			window.requestAnimationFrame(function animate(timestamp) {
 				window.requestAnimationFrame(animate);
-				this.scene.updateAllBehaviors();
-				this.renderer.render(this.scene, this.camera);
+				self.scene.updateAllBehaviors();
+				self.renderer.render(self.scene, self.previewCamera);
 			});
 		}
 	}, {
