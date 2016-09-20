@@ -7,13 +7,13 @@ const gulp = require('gulp'),
 
 gulp.task('default', function(cb){
 	pump([
-		gulp.src('./src/*.js'),
+		gulp.src(['./src/main.js','./src/loader.js']),
 		babel({presets: ['es2015']}),
 		concat('diorama.js'),
-	
-		rename('diorama.min.js'),
-		uglify(),
+		gulp.dest('./bin/'),
 
+		uglify(),
+		rename('diorama.min.js'),
 		gulp.dest('./bin/')
 	],
 	cb, function(err){

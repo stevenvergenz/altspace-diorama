@@ -1,6 +1,6 @@
 'use strict';
 
-window.Diorama = class Diorama
+class Diorama
 {
 	constructor()
 	{
@@ -55,6 +55,7 @@ window.Diorama = class Diorama
 				templateSid: 'browser'
 			});
 		}
+	}
 		
 		
 	start(...modules)
@@ -82,15 +83,14 @@ window.Diorama = class Diorama
 
 	loadAssets(manifest)
 	{
+		var self = this;
+
 		return new Promise((resolve, reject) =>
 		{
-			var payload = {};
-			var self = this;
-
-			// the promise for all assets
+			// populate cache
 			Promise.all([
 
-				// the promise for all models
+				// populate model cache
 				Promise.all(Object.keys(manifest.models || {}).map(id =>
 				{
 					var url = manifest.models[id];
@@ -100,159 +100,38 @@ window.Diorama = class Diorama
 						return Diorama.ModelPromise(url).then(model => {
 							self.assetCache.models[url] = model;
 						});
-				}),
+				})),
 
-				// the promise for all textures
+				// populate explicit texture cache
 				Promise.all(Object.keys(manifest.textures || {}).map(id =>
 				{
 					var url = manifest.textures[id];
 					if(self.assetCache.textures[url])
 						return Promise.resolve(self.assetCache.textures[url]);
 					else
-						return Diorama.ModelPromise(url).then(texture => {
+						return Diorama.TexturePromise(url).then(texture => {
 							self.assetCache.textures[url] = texture;
 						});			
-				})
+				}))
 			])
 
-			.then(() => resolve(payload))
-			.catch((...args) => reject(...args));
-		};
+			.catch((...args) => reject(...args))
+			.then(() =>
+			{
+				// populate payload from cache
+				var payload = {models: {}, textures: {}};
+
+				for(let i in manifest.models){
+					payload.models[i] = self.assetCache.models[manifest.models[i]];
+				}
+
+				for(let i in manifest.textures){
+					payload.textures[i] = self.assetCache.textures[manifest.textures[i]];
+				}
+
+				resolve(payload);
+			});
+		});
 	}
 
-	// loads an asset manifest from a vignette
-	loadAssets(manifest)
-	{
-		return new Promise((resolve,reject) => {
-
-			var waiting = 0;
-			var payload = {};
-
-			// load models
-			if(manifest.models)
-			{
-				payload.models = {};
-
-				// loop over each entry in the model manifest
-				Object.keys(manifest.models).forEach(function(id)
-				{
-					var url = manifest.models[id];
-
-					// check cache for asset
-					if(cache.models[url]){
-						payload.models[id] = cache.models[url].clone();
-					}
-
-					// load gltf models
-					else if(/\.gltf$/.test(url))
-					{
-						// increment wait count
-						waiting++;
-
-						// start loader
-						var loader = new THREE.glTFLoader();
-						loader.load(url, function(result)
-						{
-							// write model to cache and payload
-							cache.models[url] = result.scene.children[0].children[0];
-							payload.models[id] = cache.models[url].clone();
-
-							// finish
-							checkComplete(true);
-						});
-					}
-				});
-			}
-
-			if(manifest.textures)
-			{
-				payload.textures = {};
-
-				// loop over each entry in the texture manifest
-				Object.keys(manifest.textures).forEach(function(id)
-				{
-					var url = manifest.textures[id];
-
-					// check cache for asset
-					if(cache.textures[url]){
-						payload.textures[id] = cache.textures[url].clone();
-					}
-
-					// load textures
-					else
-					{
-						// increment wait count
-						waiting++;
-					
-						// start loader
-						var loader = new THREE.TextureLoader();
-						loader.load(url,
-							function(texture)
-							{
-								// write texture to cache and payload
-								cache.textures[url] = texture;
-								payload.textures[id] = cache.textures[url].clone();
-
-								// finish
-								checkComplete(true);
-							},
-							null,
-							function(err)
-							{
-								console.error(err);
-								checkComplete(true);
-							}
-						);
-					}
-				});
-			}
-
-			if(manifest.videos)
-			{
-				payload.videos = {};
-
-				// loop over each entry in the texture manifest
-				Object.keys(manifest.videos).forEach(function(id)
-				{
-					var url = manifest.videos[id];
-
-					// check cache for asset
-					if(cache.videos[url]){
-						payload.videos[id] = cache.videos[url].clone();
-					}
-
-					// load videos
-					else
-					{
-						// start loader
-						var vidSrc = document.createElement('video');
-						vidSrc.autoplay = true;
-						vidSrc.loop = true;
-						vidSrc.src = url;
-						vidSrc.style.display = 'none';
-						document.body.appendChild(vidSrc);
-
-						var tex = new THREE.VideoTexture(vidSrc);
-						tex.minFilter = THREE.LinearFilter;
-						tex.magFilter = THREE.LinearFilter;
-						tex.format = THREE.RGBFormat;
-
-						cache.videos[url] = tex;
-						payload.videos[id] = cache.videos[url];
-					}
-				});
-			}
-
-		checkComplete();
-
-
-		function checkComplete(done)
-		{
-			if(done) waiting--;
-			if(waiting === 0)
-				callback(payload);
-		}
-	}
-
-
-}
+};
