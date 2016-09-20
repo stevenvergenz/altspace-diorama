@@ -6,9 +6,33 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 	{
 		super(-1, 1, 1, -1, .1, 400);
 
-		this.viewSize = viewSize;
-		this.focus = focus;
-		this.lookDirection = lookDirection;
+		this._viewSize = viewSize;
+		this._focus = focus;
+		this._lookDirection = lookDirection;
+	}
+
+	get viewSize(){
+		return this._viewSize;
+	}
+	set viewSize(val){
+		this._viewSize = val;
+		this.recomputeViewport();
+	}
+
+	get focus(){
+		return this._focus;
+	}
+	set focus(val){
+		this._focus.copy(val);
+		this.recomputeViewport();
+	}
+
+	get lookDirection(){
+		return this._lookDirection;
+	}
+	set lookDirection(val){
+		this._lookDirection.copy(val);
+		this.recomputeViewport();
 	}
 
 	registerHooks(renderer)
@@ -16,17 +40,17 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		this.renderer = renderer;
 		document.body.style.margin = '0';
 
-		this.resizeViewport();
+		this.recomputeViewport();
 	}
 
-	resizeViewport()
+	recomputeViewport()
 	{
 		// resize canvas
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 
 		// compute window dimensions from view size
 		var ratio = window.innerWidth / window.innerHeight;
-		var height = Math.sqrt( (this.viewSize*this.viewSize) / (ratio*ratio + 1) );
+		var height = Math.sqrt( (this._viewSize*this._viewSize) / (ratio*ratio + 1) );
 		var width = ratio * height;
 
 		// set frustrum edges
@@ -38,7 +62,11 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		this.updateProjectionMatrix();
 
 		// update position
-		this.position.copy(this.focus).sub( this.lookDirection.clone().multiplyScalar(200) );
-		this.lookAt( this.focus );
+		this.position.copy(this._focus).sub( this._lookDirection.clone().multiplyScalar(200) );
+		if( Math.abs( this._lookDirection.normalize().dot(new THREE.Vector3(0,-1,0)) ) === 1 )
+			this.up.set(0,0,1); // if we're looking down the Y axis
+		else
+			this.up.set(0,1,0);
+		this.lookAt( this._focus );
 	}
 }

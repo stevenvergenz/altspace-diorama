@@ -128,11 +128,11 @@ class Diorama
 				var payload = {models: {}, textures: {}};
 
 				for(let i in manifest.models){
-					payload.models[i] = self.assetCache.models[manifest.models[i]];
+					payload.models[i] = self.assetCache.models[manifest.models[i]].clone();
 				}
 
 				for(let i in manifest.textures){
-					payload.textures[i] = self.assetCache.textures[manifest.textures[i]];
+					payload.textures[i] = self.assetCache.textures[manifest.textures[i]].clone();
 				}
 
 				resolve(payload);

@@ -125,11 +125,11 @@ var Diorama = function () {
 					var payload = { models: {}, textures: {} };
 
 					for (var i in manifest.models) {
-						payload.models[i] = self.assetCache.models[manifest.models[i]];
+						payload.models[i] = self.assetCache.models[manifest.models[i]].clone();
 					}
 
 					for (var _i in manifest.textures) {
-						payload.textures[_i] = self.assetCache.textures[manifest.textures[_i]];
+						payload.textures[_i] = self.assetCache.textures[manifest.textures[_i]].clone();
 					}
 
 					resolve(payload);
@@ -206,9 +206,9 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 
 		var _this = _possibleConstructorReturn(this, (PreviewCamera.__proto__ || Object.getPrototypeOf(PreviewCamera)).call(this, -1, 1, 1, -1, .1, 400));
 
-		_this.viewSize = viewSize;
-		_this.focus = focus;
-		_this.lookDirection = lookDirection;
+		_this._viewSize = viewSize;
+		_this._focus = focus;
+		_this._lookDirection = lookDirection;
 		return _this;
 	}
 
@@ -218,17 +218,17 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 			this.renderer = renderer;
 			document.body.style.margin = '0';
 
-			this.resizeViewport();
+			this.recomputeViewport();
 		}
 	}, {
-		key: 'resizeViewport',
-		value: function resizeViewport() {
+		key: 'recomputeViewport',
+		value: function recomputeViewport() {
 			// resize canvas
 			this.renderer.setSize(window.innerWidth, window.innerHeight);
 
 			// compute window dimensions from view size
 			var ratio = window.innerWidth / window.innerHeight;
-			var height = Math.sqrt(this.viewSize * this.viewSize / (ratio * ratio + 1));
+			var height = Math.sqrt(this._viewSize * this._viewSize / (ratio * ratio + 1));
 			var width = ratio * height;
 
 			// set frustrum edges
@@ -240,8 +240,37 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 			this.updateProjectionMatrix();
 
 			// update position
-			this.position.copy(this.focus).sub(this.lookDirection.clone().multiplyScalar(200));
-			this.lookAt(this.focus);
+			this.position.copy(this._focus).sub(this._lookDirection.clone().multiplyScalar(200));
+			if (Math.abs(this._lookDirection.normalize().dot(new THREE.Vector3(0, -1, 0))) === 1) this.up.set(0, 0, 1); // if we're looking down the Y axis
+			else this.up.set(0, 1, 0);
+			this.lookAt(this._focus);
+		}
+	}, {
+		key: 'viewSize',
+		get: function get() {
+			return this._viewSize;
+		},
+		set: function set(val) {
+			this._viewSize = val;
+			this.recomputeViewport();
+		}
+	}, {
+		key: 'focus',
+		get: function get() {
+			return this._focus;
+		},
+		set: function set(val) {
+			this._focus.copy(val);
+			this.recomputeViewport();
+		}
+	}, {
+		key: 'lookDirection',
+		get: function get() {
+			return this._lookDirection;
+		},
+		set: function set(val) {
+			this._lookDirection.copy(val);
+			this.recomputeViewport();
 		}
 	}]);
 
