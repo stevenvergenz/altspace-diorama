@@ -10,11 +10,11 @@ gulp.task('default', function(cb){
 		gulp.src(['./src/main.js','./src/loader.js']),
 		babel({presets: ['es2015']}),
 		concat('diorama.js'),
-		gulp.dest('./bin/'),
+		gulp.dest('./dist/'),
 
 		uglify(),
 		rename('diorama.min.js'),
-		gulp.dest('./bin/')
+		gulp.dest('./dist/')
 	],
 	cb, function(err){
 		if(err) console.error(err);
