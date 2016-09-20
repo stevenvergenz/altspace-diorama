@@ -21,9 +21,7 @@
 			else if(/\.dae$/i.test(url)){
 				if(THREE.ColladaLoader){
 					let loader = new THREE.ColladaLoader();
-					loader.load(url, (result) => {
-						resolve(result.scene.children[0]);
-					});
+					loader.load(url, result => resolve(result.scene.children[0]), null, reject);
 				}
 				else {
 					console.error(`THREE.ColladaLoader not found. "${url}" not loaded.`);

@@ -176,8 +176,8 @@ var Diorama = function () {
 				if (THREE.ColladaLoader) {
 					var _loader = new THREE.ColladaLoader();
 					_loader.load(url, function (result) {
-						resolve(result.scene.children[0]);
-					});
+						return resolve(result.scene.children[0]);
+					}, null, reject);
 				} else {
 					console.error('THREE.ColladaLoader not found. "' + url + '" not loaded.');
 					reject();
