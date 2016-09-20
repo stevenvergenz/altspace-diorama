@@ -7,17 +7,28 @@
 		{
 			// NOTE: glTF loader does not catch errors
 			if(/\.gltf$/i.test(url)){
-				let loader = new THREE.glTFLoader();
-				loader.load(url, (result) => {
-					resolve(result.scene.children[0].children[0]);
-				});
+				if(THREE.glTFLoader){
+					let loader = new THREE.glTFLoader();
+					loader.load(url, (result) => {
+						resolve(result.scene.children[0].children[0]);
+					});
+				}
+				else {
+					console.error(`THREE.glTFLoader not found. "${url}" not loaded.`);
+					reject();
+				}
 			}
 			else if(/\.dae$/i.test(url)){
-				console.log('loading collada');
-				let loader = new THREE.ColladaLoader();
-				loader.load(url, (result) => {
-					resolve(result.scene.children[0]);
-				});
+				if(THREE.ColladaLoader){
+					let loader = new THREE.ColladaLoader();
+					loader.load(url, (result) => {
+						resolve(result.scene.children[0]);
+					});
+				}
+				else {
+					console.error(`THREE.ColladaLoader not found. "${url}" not loaded.`);
+					reject();
+				}
 			}
 		});
 	}

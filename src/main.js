@@ -72,8 +72,7 @@ class Diorama
 			var root = new THREE.Object3D();
 			self.scene.add(root);
 		
-			self.loadAssets(module.assets).then((results) =>
-			{
+			self.loadAssets(module.assets).then((results) => {
 				module.initialize(self.env, root, results);
 			});
 		});
@@ -91,10 +90,25 @@ class Diorama
 	{
 		var self = this;
 
+		function PromisesFinished(arr)
+		{
+			return new Promise((resolve, reject) =>
+			{
+				var waiting = arr.length;
+				
+				function checkDone(){
+					if( --waiting === 0 )
+						resolve();
+				}
+
+				arr.forEach(p => { p.then(checkDone, checkDone); });
+			});
+		}
+
 		return new Promise((resolve, reject) =>
 		{
 			// populate cache
-			Promise.all([
+			PromisesFinished([
 
 				// populate model cache
 				Promise.all(Object.keys(manifest.models || {}).map(id =>
@@ -121,18 +135,19 @@ class Diorama
 				}))
 			])
 
-			.catch((...args) => reject(...args))
 			.then(() =>
 			{
 				// populate payload from cache
 				var payload = {models: {}, textures: {}};
 
 				for(let i in manifest.models){
-					payload.models[i] = self.assetCache.models[manifest.models[i]].clone();
+					let t = self.assetCache.models[manifest.models[i]];
+					payload.models[i] = t ? t.clone() : null;
 				}
 
 				for(let i in manifest.textures){
-					payload.textures[i] = self.assetCache.textures[manifest.textures[i]].clone();
+					let t = self.assetCache.textures[manifest.textures[i]];
+					payload.textures[i] = t ? t.clone() : null;
 				}
 
 				resolve(payload);

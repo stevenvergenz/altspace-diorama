@@ -100,9 +100,23 @@ var Diorama = function () {
 		value: function loadAssets(manifest) {
 			var self = this;
 
+			function PromisesFinished(arr) {
+				return new Promise(function (resolve, reject) {
+					var waiting = arr.length;
+
+					function checkDone() {
+						if (--waiting === 0) resolve();
+					}
+
+					arr.forEach(function (p) {
+						p.then(checkDone, checkDone);
+					});
+				});
+			}
+
 			return new Promise(function (resolve, reject) {
 				// populate cache
-				Promise.all([
+				PromisesFinished([
 
 				// populate model cache
 				Promise.all(Object.keys(manifest.models || {}).map(function (id) {
@@ -118,18 +132,18 @@ var Diorama = function () {
 					if (self.assetCache.textures[url]) return Promise.resolve(self.assetCache.textures[url]);else return Diorama.TexturePromise(url).then(function (texture) {
 						self.assetCache.textures[url] = texture;
 					});
-				}))]).catch(function () {
-					return reject.apply(undefined, arguments);
-				}).then(function () {
+				}))]).then(function () {
 					// populate payload from cache
 					var payload = { models: {}, textures: {} };
 
 					for (var i in manifest.models) {
-						payload.models[i] = self.assetCache.models[manifest.models[i]].clone();
+						var t = self.assetCache.models[manifest.models[i]];
+						payload.models[i] = t ? t.clone() : null;
 					}
 
 					for (var _i in manifest.textures) {
-						payload.textures[_i] = self.assetCache.textures[manifest.textures[_i]].clone();
+						var _t = self.assetCache.textures[manifest.textures[_i]];
+						payload.textures[_i] = _t ? _t.clone() : null;
 					}
 
 					resolve(payload);
@@ -149,16 +163,25 @@ var Diorama = function () {
 		return new Promise(function (resolve, reject) {
 			// NOTE: glTF loader does not catch errors
 			if (/\.gltf$/i.test(url)) {
-				var loader = new THREE.glTFLoader();
-				loader.load(url, function (result) {
-					resolve(result.scene.children[0].children[0]);
-				});
+				if (THREE.glTFLoader) {
+					var loader = new THREE.glTFLoader();
+					loader.load(url, function (result) {
+						resolve(result.scene.children[0].children[0]);
+					});
+				} else {
+					console.error('THREE.glTFLoader not found. "' + url + '" not loaded.');
+					reject();
+				}
 			} else if (/\.dae$/i.test(url)) {
-				console.log('loading collada');
-				var _loader = new THREE.ColladaLoader();
-				_loader.load(url, function (result) {
-					resolve(result.scene.children[0]);
-				});
+				if (THREE.ColladaLoader) {
+					var _loader = new THREE.ColladaLoader();
+					_loader.load(url, function (result) {
+						resolve(result.scene.children[0]);
+					});
+				} else {
+					console.error('THREE.ColladaLoader not found. "' + url + '" not loaded.');
+					reject();
+				}
 			}
 		});
 	};
