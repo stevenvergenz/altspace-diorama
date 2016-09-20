@@ -1,0 +1,25 @@
+<html>
+	<head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r74/three.js"></script>
+		<script src="http://sdk.altvr.com/libs/altspace.js/0.18.2/altspace.min.js"></script>
+		<script src="../lib/ColladaLoader.js"></script>
+		<script src="../dist/diorama.js"></script>
+	</head>
+	<body>
+		<script>
+			var globe = {
+				initialize: function(env, root, assets){
+					assets.models.globe.rotateX(-Math.PI/2);
+					root.add(assets.models.globe);
+				},
+				assets: {
+					models: {globe: 'models/globe.dae'}
+				}
+			};
+
+			var diorama = new Diorama();
+			diorama.start(globe);
+		</script>
+
+	</body>
+</html>

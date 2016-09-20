@@ -6,10 +6,17 @@
 		return new Promise((resolve, reject) =>
 		{
 			// NOTE: glTF loader does not catch errors
-			if(/\.gltf$/.test(url)){
-				var loader = new THREE.glTFLoader();
+			if(/\.gltf$/i.test(url)){
+				let loader = new THREE.glTFLoader();
 				loader.load(url, (result) => {
 					resolve(result.scene.children[0].children[0]);
+				});
+			}
+			else if(/\.dae$/i.test(url)){
+				console.log('loading collada');
+				let loader = new THREE.ColladaLoader();
+				loader.load(url, (result) => {
+					resolve(result.scene.children[0]);
 				});
 			}
 		});

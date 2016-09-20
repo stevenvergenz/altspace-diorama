@@ -148,10 +148,16 @@ var Diorama = function () {
 	window.Diorama.ModelPromise = function (url) {
 		return new Promise(function (resolve, reject) {
 			// NOTE: glTF loader does not catch errors
-			if (/\.gltf$/.test(url)) {
+			if (/\.gltf$/i.test(url)) {
 				var loader = new THREE.glTFLoader();
 				loader.load(url, function (result) {
 					resolve(result.scene.children[0].children[0]);
+				});
+			} else if (/\.dae$/i.test(url)) {
+				console.log('loading collada');
+				var _loader = new THREE.ColladaLoader();
+				_loader.load(url, function (result) {
+					resolve(result.scene.children[0]);
 				});
 			}
 		});
