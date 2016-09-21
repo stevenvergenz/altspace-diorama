@@ -40,6 +40,7 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		this.renderer = renderer;
 		document.body.style.margin = '0';
 
+
 		this.recomputeViewport();
 	}
 

@@ -2,7 +2,7 @@
 
 class Diorama
 {
-	constructor()
+	constructor({bgColor=0} = {})
 	{
 		var self = this;
 
@@ -38,12 +38,14 @@ class Diorama
 			// set up preview renderer, in case we're out of world
 			self.renderer = new THREE.WebGLRenderer();
 			self.renderer.setSize(window.innerWidth, window.innerHeight);
-			self.renderer.setClearColor( 0x888888 );
+			self.renderer.setClearColor( bgColor );
 			document.body.appendChild(self.renderer.domElement);
 		
 			self.previewCamera = new Diorama.PreviewCamera();
 			self.scene.add(self.previewCamera);
 			self.previewCamera.registerHooks(self.renderer);
+
+			self.scene.add( new THREE.GridHelper(300, 1) );
 
 			// set up cursor emulation
 			altspace.utilities.shims.cursor.init(self.scene, self.previewCamera, {renderer: self.renderer});
@@ -84,6 +86,10 @@ class Diorama
 		{
 			var root = new THREE.Object3D();
 			self.scene.add(root);
+
+			if(self.previewCamera){
+				root.add( new THREE.AxisHelper(1) );
+			}
 		
 			self.loadAssets(module.assets, singletons).then((results) => {
 				module.initialize(self.env, root, results);
