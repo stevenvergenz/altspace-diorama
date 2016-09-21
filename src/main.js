@@ -74,8 +74,8 @@ class Diorama
 				if(singletons[url] === undefined) singletons[url] = true;
 				else if(singletons[url] === true) singletons[url] = false;
 			}
-			Object.keys(mod.assets.textures).map(k => mod.assets.textures[k]).forEach(checkAsset);
-			Object.keys(mod.assets.models).map(k => mod.assets.models[k]).forEach(checkAsset);
+			Object.keys(mod.assets.textures || {}).map(k => mod.assets.textures[k]).forEach(checkAsset);
+			Object.keys(mod.assets.models || {}).map(k => mod.assets.models[k]).forEach(checkAsset);
 		});
 
 

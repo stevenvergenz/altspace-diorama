@@ -84,10 +84,10 @@ var Diorama = function () {
 				function checkAsset(url) {
 					if (singletons[url] === undefined) singletons[url] = true;else if (singletons[url] === true) singletons[url] = false;
 				}
-				Object.keys(mod.assets.textures).map(function (k) {
+				Object.keys(mod.assets.textures || {}).map(function (k) {
 					return mod.assets.textures[k];
 				}).forEach(checkAsset);
-				Object.keys(mod.assets.models).map(function (k) {
+				Object.keys(mod.assets.models || {}).map(function (k) {
 					return mod.assets.models[k];
 				}).forEach(checkAsset);
 			});
