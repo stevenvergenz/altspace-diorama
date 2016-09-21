@@ -101,6 +101,7 @@ class Diorama
 						resolve();
 				}
 
+				checkDone();
 				arr.forEach(p => { p.then(checkDone, checkDone); });
 			});
 		}
