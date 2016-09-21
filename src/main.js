@@ -66,13 +66,26 @@ class Diorama
 	{
 		var self = this;
 
+		// determine which assets aren't shared
+		var singletons = {};
+		modules.forEach(mod =>
+		{
+			function checkAsset(url){
+				if(singletons[url] === undefined) singletons[url] = true;
+				else if(singletons[url] === true) singletons[url] = false;
+			}
+			Object.keys(mod.assets.textures).map(k => mod.assets.textures[k]).forEach(checkAsset);
+			Object.keys(mod.assets.models).map(k => mod.assets.models[k]).forEach(checkAsset);
+		});
+
+
 		// construct dioramas
 		modules.forEach(function(module)
 		{
 			var root = new THREE.Object3D();
 			self.scene.add(root);
 		
-			self.loadAssets(module.assets).then((results) => {
+			self.loadAssets(module.assets, singletons).then((results) => {
 				module.initialize(self.env, root, results);
 			});
 		});
@@ -86,7 +99,7 @@ class Diorama
 		});
 	}
 
-	loadAssets(manifest)
+	loadAssets(manifest, singletons)
 	{
 		var self = this;
 
@@ -97,11 +110,10 @@ class Diorama
 				var waiting = arr.length;
 				
 				function checkDone(){
-					if( --waiting === 0 )
+					if(--waiting === 0)
 						resolve();
 				}
 
-				checkDone();
 				arr.forEach(p => { p.then(checkDone, checkDone); });
 			});
 		}
@@ -142,13 +154,15 @@ class Diorama
 				var payload = {models: {}, textures: {}};
 
 				for(let i in manifest.models){
-					let t = self.assetCache.models[manifest.models[i]];
-					payload.models[i] = t ? t.clone() : null;
+					let url = manifest.models[i];
+					let t = self.assetCache.models[url];
+					payload.models[i] = t ? singletons[url] ? t : t.clone() : null;
 				}
 
 				for(let i in manifest.textures){
-					let t = self.assetCache.textures[manifest.textures[i]];
-					payload.textures[i] = t ? t.clone() : null;
+					let url = manifest.textures[i];
+					let t = self.assetCache.textures[url];
+					payload.textures[i] = t ? singletons[url] ? t : t.clone() : null;
 				}
 
 				resolve(payload);

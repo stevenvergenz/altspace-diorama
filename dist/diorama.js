@@ -73,17 +73,31 @@ var Diorama = function () {
 		value: function start() {
 			var self = this;
 
-			// construct dioramas
+			// determine which assets aren't shared
+			var singletons = {};
 
 			for (var _len = arguments.length, modules = Array(_len), _key = 0; _key < _len; _key++) {
 				modules[_key] = arguments[_key];
 			}
 
+			modules.forEach(function (mod) {
+				function checkAsset(url) {
+					if (singletons[url] === undefined) singletons[url] = true;else if (singletons[url] === true) singletons[url] = false;
+				}
+				Object.keys(mod.assets.textures).map(function (k) {
+					return mod.assets.textures[k];
+				}).forEach(checkAsset);
+				Object.keys(mod.assets.models).map(function (k) {
+					return mod.assets.models[k];
+				}).forEach(checkAsset);
+			});
+
+			// construct dioramas
 			modules.forEach(function (module) {
 				var root = new THREE.Object3D();
 				self.scene.add(root);
 
-				self.loadAssets(module.assets).then(function (results) {
+				self.loadAssets(module.assets, singletons).then(function (results) {
 					module.initialize(self.env, root, results);
 				});
 			});
@@ -97,7 +111,7 @@ var Diorama = function () {
 		}
 	}, {
 		key: 'loadAssets',
-		value: function loadAssets(manifest) {
+		value: function loadAssets(manifest, singletons) {
 			var self = this;
 
 			function PromisesFinished(arr) {
@@ -137,13 +151,15 @@ var Diorama = function () {
 					var payload = { models: {}, textures: {} };
 
 					for (var i in manifest.models) {
-						var t = self.assetCache.models[manifest.models[i]];
-						payload.models[i] = t ? t.clone() : null;
+						var url = manifest.models[i];
+						var t = self.assetCache.models[url];
+						payload.models[i] = t ? singletons[url] ? t : t.clone() : null;
 					}
 
 					for (var _i in manifest.textures) {
-						var _t = self.assetCache.textures[manifest.textures[_i]];
-						payload.textures[_i] = _t ? _t.clone() : null;
+						var _url = manifest.textures[_i];
+						var _t = self.assetCache.textures[_url];
+						payload.textures[_i] = _t ? singletons[_url] ? _t : _t.clone() : null;
 					}
 
 					resolve(payload);
