@@ -1,7 +1,7 @@
 'use strict';
 
 {
-	window.Diorama.ModelPromise = function(url)
+	Diorama.ModelPromise = function(url)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -31,7 +31,7 @@
 		});
 	}
 
-	window.Diorama.TexturePromise = function(url)
+	Diorama.TexturePromise = function(url)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -40,7 +40,7 @@
 		});
 	}
 
-	window.Diorama.VideoPromise = function(url)
+	Diorama.VideoPromise = function(url)
 	{
 		// start loader
 		var vidSrc = document.createElement('video');
