@@ -37,7 +37,7 @@ class Diorama
 		{
 			// set up preview renderer, in case we're out of world
 			self.renderer = new THREE.WebGLRenderer();
-			self.renderer.setSize(window.innerWidth, window.innerHeight);
+			self.renderer.setSize(document.body.clientWidth, document.body.clientHeight);
 			self.renderer.setClearColor( bgColor );
 			document.body.appendChild(self.renderer.domElement);
 		

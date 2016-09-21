@@ -37,20 +37,46 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 
 	registerHooks(renderer)
 	{
+		var self = this;
 		this.renderer = renderer;
+
+		// set styles on the page, so the preview works right
+		document.body.parentElement.style.height = '100%';
+		document.body.style.height = '100%';
 		document.body.style.margin = '0';
+		document.body.style.overflow = 'hidden';
 
-
+		// resize the preview canvas when window resizes
+		window.addEventListener('resize', e => self.recomputeViewport());
 		this.recomputeViewport();
+
+		var dragStart = null, focusStart = null;
+		window.addEventListener('mousedown', e => {
+			if(e.button === 1){
+				dragStart = {x: e.clientX, y: e.clientY};
+				focusStart = self._focus.clone();
+			}
+		});
+		window.addEventListener('mouseup', e => {
+			if(e.button === 1)
+				dragStart = null;
+		});
+		window.addEventListener('mousemove', e => {
+			if(dragStart){
+				
+			}
+		});
 	}
 
 	recomputeViewport()
 	{
+		var {clientWidth: w, clientHeight: h} = document.body;
+
 		// resize canvas
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setSize(w, h);
 
 		// compute window dimensions from view size
-		var ratio = window.innerWidth / window.innerHeight;
+		var ratio = w/h;
 		var height = Math.sqrt( (this._viewSize*this._viewSize) / (ratio*ratio + 1) );
 		var width = ratio * height;
 
