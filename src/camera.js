@@ -38,7 +38,7 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 	registerHooks(renderer)
 	{
 		var self = this;
-		this.renderer = renderer;
+		self.renderer = renderer;
 
 		// set styles on the page, so the preview works right
 		document.body.parentElement.style.height = '100%';
@@ -48,7 +48,7 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 
 		// resize the preview canvas when window resizes
 		window.addEventListener('resize', e => self.recomputeViewport());
-		this.recomputeViewport();
+		self.recomputeViewport();
 
 		var dragStart = null, focusStart = null;
 		window.addEventListener('mousedown', e => {
@@ -58,12 +58,24 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 			}
 		});
 		window.addEventListener('mouseup', e => {
-			if(e.button === 1)
+			if(e.button === 1){
 				dragStart = null;
+				focusStart = null;
+			}
 		});
 		window.addEventListener('mousemove', e => {
-			if(dragStart){
-				
+			if(dragStart)
+			{
+				let {clientWidth: w, clientHeight: h} = document.body;
+				let pixelsPerMeter = Math.sqrt(w*w+h*h) / self._viewSize;
+				let dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+				let right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
+
+				self._focus.copy(focusStart)
+					.add(self.up.clone().multiplyScalar(dy/pixelsPerMeter))
+					.add(right.multiplyScalar(-dx/pixelsPerMeter));
+
+				self.recomputeViewport();
 			}
 		});
 	}
