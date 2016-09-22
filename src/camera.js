@@ -47,6 +47,16 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		document.body.style.margin = '0';
 		document.body.style.overflow = 'hidden';
 
+		var info = document.createElement('p');
+		info.innerHTML = ['Middle click and drag to pan', 'Mouse wheel to zoom', 'Arrow keys to rotate'].join('<br/>');
+		Object.assign(info.style, {
+			position: 'fixed',
+			top: '10px',
+			left: '10px',
+			margin: 0
+		});
+		document.body.appendChild(info);
+
 		// resize the preview canvas when window resizes
 		window.addEventListener('resize', e => self.recomputeViewport());
 		self.recomputeViewport();

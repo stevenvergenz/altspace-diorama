@@ -8,6 +8,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Diorama = function () {
 	function Diorama() {
+		var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+		var _ref$bgColor = _ref.bgColor;
+		var bgColor = _ref$bgColor === undefined ? 0xaaaaaa : _ref$bgColor;
+
 		_classCallCheck(this, Diorama);
 
 		var self = this;
@@ -23,11 +28,11 @@ var Diorama = function () {
 		// set up renderer and scale
 		if (altspace.inClient) {
 			self.renderer = altspace.getThreeJSRenderer();
-			Promise.all([altspace.getEnclosure(), altspace.getSpace()]).then(function (_ref) {
-				var _ref2 = _slicedToArray(_ref, 2);
+			Promise.all([altspace.getEnclosure(), altspace.getSpace()]).then(function (_ref2) {
+				var _ref3 = _slicedToArray(_ref2, 2);
 
-				var e = _ref2[0];
-				var s = _ref2[1];
+				var e = _ref3[0];
+				var s = _ref3[1];
 
 				self.env = Object.freeze({
 					innerHeight: e.innerHeight,
@@ -44,12 +49,12 @@ var Diorama = function () {
 		} else {
 			// set up preview renderer, in case we're out of world
 			self.renderer = new THREE.WebGLRenderer();
-			self.renderer.setSize(window.innerWidth, window.innerHeight);
-			self.renderer.setClearColor(0x888888);
+			self.renderer.setSize(document.body.clientWidth, document.body.clientHeight);
+			self.renderer.setClearColor(bgColor);
 			document.body.appendChild(self.renderer.domElement);
 
 			self.previewCamera = new Diorama.PreviewCamera();
-			self.scene.add(self.previewCamera);
+			self.scene.add(self.previewCamera, self.previewCamera.gridHelper);
 			self.previewCamera.registerHooks(self.renderer);
 
 			// set up cursor emulation
@@ -96,6 +101,10 @@ var Diorama = function () {
 			modules.forEach(function (module) {
 				var root = new THREE.Object3D();
 				self.scene.add(root);
+
+				if (self.previewCamera) {
+					root.add(new THREE.AxisHelper(1));
+				}
 
 				self.loadAssets(module.assets, singletons).then(function (results) {
 					module.initialize(self.env, root, results);
@@ -175,7 +184,7 @@ var Diorama = function () {
 'use strict';
 
 {
-	window.Diorama.ModelPromise = function (url) {
+	Diorama.ModelPromise = function (url) {
 		return new Promise(function (resolve, reject) {
 			// NOTE: glTF loader does not catch errors
 			if (/\.gltf$/i.test(url)) {
@@ -202,14 +211,14 @@ var Diorama = function () {
 		});
 	};
 
-	window.Diorama.TexturePromise = function (url) {
+	Diorama.TexturePromise = function (url) {
 		return new Promise(function (resolve, reject) {
 			var loader = new THREE.TextureLoader();
 			loader.load(url, resolve, null, reject);
 		});
 	};
 
-	window.Diorama.VideoPromise = function (url) {
+	Diorama.VideoPromise = function (url) {
 		// start loader
 		var vidSrc = document.createElement('video');
 		vidSrc.autoplay = true;
@@ -244,7 +253,7 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 
 	function PreviewCamera() {
 		var focus = arguments.length <= 0 || arguments[0] === undefined ? new THREE.Vector3() : arguments[0];
-		var viewSize = arguments.length <= 1 || arguments[1] === undefined ? 20 : arguments[1];
+		var viewSize = arguments.length <= 1 || arguments[1] === undefined ? 40 : arguments[1];
 		var lookDirection = arguments.length <= 2 || arguments[2] === undefined ? new THREE.Vector3(0, -1, 0) : arguments[2];
 
 		_classCallCheck(this, PreviewCamera);
@@ -254,25 +263,117 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 		_this._viewSize = viewSize;
 		_this._focus = focus;
 		_this._lookDirection = lookDirection;
+		_this.gridHelper = new THREE.GridHelper(300, 1);
 		return _this;
 	}
 
 	_createClass(PreviewCamera, [{
 		key: 'registerHooks',
 		value: function registerHooks(renderer) {
-			this.renderer = renderer;
-			document.body.style.margin = '0';
+			var self = this;
+			self.renderer = renderer;
 
-			this.recomputeViewport();
+			// set styles on the page, so the preview works right
+			document.body.parentElement.style.height = '100%';
+			document.body.style.height = '100%';
+			document.body.style.margin = '0';
+			document.body.style.overflow = 'hidden';
+
+			var info = document.createElement('p');
+			info.innerHTML = ['Middle click and drag to pan', 'Mouse wheel to zoom', 'Arrow keys to rotate'].join('<br/>');
+			Object.assign(info.style, {
+				position: 'fixed',
+				top: '10px',
+				left: '10px',
+				margin: 0
+			});
+			document.body.appendChild(info);
+
+			// resize the preview canvas when window resizes
+			window.addEventListener('resize', function (e) {
+				return self.recomputeViewport();
+			});
+			self.recomputeViewport();
+
+			// middle click and drag to pan view
+			var dragStart = null,
+			    focusStart = null;
+			window.addEventListener('mousedown', function (e) {
+				if (e.button === 1) {
+					dragStart = { x: e.clientX, y: e.clientY };
+					focusStart = self._focus.clone();
+				}
+			});
+			window.addEventListener('mouseup', function (e) {
+				if (e.button === 1) {
+					dragStart = null;
+					focusStart = null;
+				}
+			});
+			window.addEventListener('mousemove', function (e) {
+				if (dragStart) {
+					var _document$body = document.body;
+					var w = _document$body.clientWidth;
+					var h = _document$body.clientHeight;
+
+					var pixelsPerMeter = Math.sqrt(w * w + h * h) / self._viewSize;
+					var dx = e.clientX - dragStart.x,
+					    dy = e.clientY - dragStart.y;
+					var right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
+
+					self._focus.copy(focusStart).add(self.up.clone().multiplyScalar(dy / pixelsPerMeter)).add(right.multiplyScalar(-dx / pixelsPerMeter));
+
+					self.recomputeViewport();
+				}
+			});
+
+			// wheel to zoom
+			window.addEventListener('wheel', function (e) {
+				if (e.deltaY < 0) {
+					self._viewSize *= 0.95;
+					self.recomputeViewport();
+				} else if (e.deltaY > 0) {
+					self._viewSize *= 1.05;
+					self.recomputeViewport();
+				}
+			});
+
+			// arrow keys to rotate
+			window.addEventListener('keydown', function (e) {
+				if (e.key === 'ArrowDown') {
+					var right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
+					self._lookDirection.applyAxisAngle(right, Math.PI / 2);
+					self.gridHelper.rotateOnAxis(right, Math.PI / 2);
+					self.recomputeViewport();
+				} else if (e.key === 'ArrowUp') {
+					var _right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
+					self._lookDirection.applyAxisAngle(_right, -Math.PI / 2);
+					self.gridHelper.rotateOnAxis(_right, -Math.PI / 2);
+					self.recomputeViewport();
+				} else if (e.key === 'ArrowLeft') {
+					self._lookDirection.applyAxisAngle(self.up, -Math.PI / 2);
+					self.gridHelper.rotateOnAxis(self.up, -Math.PI / 2);
+					self.recomputeViewport();
+				} else if (e.key === 'ArrowRight') {
+					self._lookDirection.applyAxisAngle(self.up, Math.PI / 2);
+					self.gridHelper.rotateOnAxis(self.up, Math.PI / 2);
+					self.recomputeViewport();
+				}
+			});
 		}
 	}, {
 		key: 'recomputeViewport',
 		value: function recomputeViewport() {
+			var _document$body2 = document.body;
+			var w = _document$body2.clientWidth;
+			var h = _document$body2.clientHeight;
+
 			// resize canvas
-			this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+			this.renderer.setSize(w, h);
 
 			// compute window dimensions from view size
-			var ratio = window.innerWidth / window.innerHeight;
+			var ratio = w / h;
 			var height = Math.sqrt(this._viewSize * this._viewSize / (ratio * ratio + 1));
 			var width = ratio * height;
 
