@@ -12,6 +12,8 @@ var Diorama = function () {
 
 		var _ref$bgColor = _ref.bgColor;
 		var bgColor = _ref$bgColor === undefined ? 0xaaaaaa : _ref$bgColor;
+		var _ref$gridOffset = _ref.gridOffset;
+		var gridOffset = _ref$gridOffset === undefined ? new THREE.Vector3() : _ref$gridOffset;
 
 		_classCallCheck(this, Diorama);
 
@@ -54,6 +56,7 @@ var Diorama = function () {
 			document.body.appendChild(self.renderer.domElement);
 
 			self.previewCamera = new Diorama.PreviewCamera();
+			self.previewCamera.gridHelper.position.copy(gridOffset);
 			self.scene.add(self.previewCamera, self.previewCamera.gridHelper);
 			self.previewCamera.registerHooks(self.renderer);
 

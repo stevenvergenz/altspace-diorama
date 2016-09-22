@@ -55,6 +55,7 @@ API
 
 * `options` [Object] - An object with any of the following properties:
     * `bgColor` [color] - The background color of the preview. Can be a hexidecimal or a CSS style string. Defaults to `0xAAAAAA`.
+    * `gridOffset` [Vector3] - The preview grid's 3D position. Defaults to [0,0,0].
 
 **Returns**: `Diorama`
 

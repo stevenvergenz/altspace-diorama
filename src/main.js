@@ -2,7 +2,7 @@
 
 class Diorama
 {
-	constructor({bgColor=0xaaaaaa} = {})
+	constructor({bgColor=0xaaaaaa, gridOffset=new THREE.Vector3()} = {})
 	{
 		var self = this;
 
@@ -42,6 +42,7 @@ class Diorama
 			document.body.appendChild(self.renderer.domElement);
 		
 			self.previewCamera = new Diorama.PreviewCamera();
+			self.previewCamera.gridHelper.position.copy(gridOffset);
 			self.scene.add(self.previewCamera, self.previewCamera.gridHelper);
 			self.previewCamera.registerHooks(self.renderer);
 
