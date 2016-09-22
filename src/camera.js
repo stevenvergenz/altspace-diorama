@@ -2,13 +2,14 @@
 
 Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 {
-	constructor(focus = new THREE.Vector3(), viewSize = 20, lookDirection = new THREE.Vector3(0,-1,0))
+	constructor(focus = new THREE.Vector3(), viewSize = 40, lookDirection = new THREE.Vector3(0,-1,0))
 	{
 		super(-1, 1, 1, -1, .1, 400);
 
 		this._viewSize = viewSize;
 		this._focus = focus;
 		this._lookDirection = lookDirection;
+		this.gridHelper = new THREE.GridHelper(300, 1);
 	}
 
 	get viewSize(){
@@ -50,6 +51,7 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		window.addEventListener('resize', e => self.recomputeViewport());
 		self.recomputeViewport();
 
+		// middle click and drag to pan view
 		var dragStart = null, focusStart = null;
 		window.addEventListener('mousedown', e => {
 			if(e.button === 1){
@@ -75,6 +77,45 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 					.add(self.up.clone().multiplyScalar(dy/pixelsPerMeter))
 					.add(right.multiplyScalar(-dx/pixelsPerMeter));
 
+				self.recomputeViewport();
+			}
+		});
+
+		// wheel to zoom
+		window.addEventListener('wheel', e => {
+			if(e.deltaY < 0){
+				self._viewSize *= 0.95;
+				self.recomputeViewport();
+			}
+			else if(e.deltaY > 0){
+				self._viewSize *= 1.05;
+				self.recomputeViewport();
+			}
+		});
+
+		// arrow keys to rotate
+		window.addEventListener('keydown', e => {
+			if(e.key === 'ArrowDown'){
+				let right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
+				self._lookDirection.applyAxisAngle(right, Math.PI/2);
+				self.gridHelper.rotateOnAxis(right, Math.PI/2);
+				self.recomputeViewport();
+			}
+			else if(e.key === 'ArrowUp'){
+				let right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
+				self._lookDirection.applyAxisAngle(right, -Math.PI/2);
+				self.gridHelper.rotateOnAxis(right, -Math.PI/2);
+				self.recomputeViewport();
+				
+			}
+			else if(e.key === 'ArrowLeft'){
+				self._lookDirection.applyAxisAngle(self.up, -Math.PI/2);
+				self.gridHelper.rotateOnAxis(self.up, -Math.PI/2);
+				self.recomputeViewport();
+			}
+			else if(e.key === 'ArrowRight'){
+				self._lookDirection.applyAxisAngle(self.up, Math.PI/2);
+				self.gridHelper.rotateOnAxis(self.up, Math.PI/2);
 				self.recomputeViewport();
 			}
 		});

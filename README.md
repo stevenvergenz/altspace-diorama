@@ -49,9 +49,12 @@ Complete Example
 API
 -----------------------------------------------
 
-### `new Diorama()` [constructor]
+### `new Diorama(options)` [constructor]
 
-**Arguments**: None
+**Arguments**:
+
+* `options` [Object] - An object with any of the following properties:
+    * `bgColor` [color] - The background color of the preview. Can be a hexidecimal or a CSS style string. Defaults to `0xAAAAAA`.
 
 **Returns**: `Diorama`
 

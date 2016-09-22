@@ -2,7 +2,7 @@
 
 class Diorama
 {
-	constructor({bgColor=0} = {})
+	constructor({bgColor=0xaaaaaa} = {})
 	{
 		var self = this;
 
@@ -42,10 +42,8 @@ class Diorama
 			document.body.appendChild(self.renderer.domElement);
 		
 			self.previewCamera = new Diorama.PreviewCamera();
-			self.scene.add(self.previewCamera);
+			self.scene.add(self.previewCamera, self.previewCamera.gridHelper);
 			self.previewCamera.registerHooks(self.renderer);
-
-			self.scene.add( new THREE.GridHelper(300, 1) );
 
 			// set up cursor emulation
 			altspace.utilities.shims.cursor.init(self.scene, self.previewCamera, {renderer: self.renderer});
