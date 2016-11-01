@@ -8,12 +8,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Diorama = function () {
 	function Diorama() {
-		var _ref = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-		var _ref$bgColor = _ref.bgColor;
-		var bgColor = _ref$bgColor === undefined ? 0xaaaaaa : _ref$bgColor;
-		var _ref$gridOffset = _ref.gridOffset;
-		var gridOffset = _ref$gridOffset === undefined ? new THREE.Vector3() : _ref$gridOffset;
+		var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+		    _ref$bgColor = _ref.bgColor,
+		    bgColor = _ref$bgColor === undefined ? 0xaaaaaa : _ref$bgColor,
+		    _ref$gridOffset = _ref.gridOffset,
+		    gridOffset = _ref$gridOffset === undefined ? new THREE.Vector3() : _ref$gridOffset;
 
 		_classCallCheck(this, Diorama);
 
@@ -31,10 +30,9 @@ var Diorama = function () {
 		if (altspace.inClient) {
 			self.renderer = altspace.getThreeJSRenderer();
 			Promise.all([altspace.getEnclosure(), altspace.getSpace()]).then(function (_ref2) {
-				var _ref3 = _slicedToArray(_ref2, 2);
-
-				var e = _ref3[0];
-				var s = _ref3[1];
+				var _ref3 = _slicedToArray(_ref2, 2),
+				    e = _ref3[0],
+				    s = _ref3[1];
 
 				self.env = Object.freeze({
 					innerHeight: e.innerHeight,
@@ -187,6 +185,8 @@ var Diorama = function () {
 'use strict';
 
 {
+	THREE.glTFLoader = THREE.glTFLoader || THREE.GLTFLoader;
+
 	Diorama.ModelPromise = function (url) {
 		return new Promise(function (resolve, reject) {
 			// NOTE: glTF loader does not catch errors
@@ -255,9 +255,9 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 	_inherits(PreviewCamera, _THREE$OrthographicCa);
 
 	function PreviewCamera() {
-		var focus = arguments.length <= 0 || arguments[0] === undefined ? new THREE.Vector3() : arguments[0];
-		var viewSize = arguments.length <= 1 || arguments[1] === undefined ? 40 : arguments[1];
-		var lookDirection = arguments.length <= 2 || arguments[2] === undefined ? new THREE.Vector3(0, -1, 0) : arguments[2];
+		var focus = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new THREE.Vector3();
+		var viewSize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 40;
+		var lookDirection = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : new THREE.Vector3(0, -1, 0);
 
 		_classCallCheck(this, PreviewCamera);
 
@@ -315,9 +315,9 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 			});
 			window.addEventListener('mousemove', function (e) {
 				if (dragStart) {
-					var _document$body = document.body;
-					var w = _document$body.clientWidth;
-					var h = _document$body.clientHeight;
+					var _document$body = document.body,
+					    w = _document$body.clientWidth,
+					    h = _document$body.clientHeight;
 
 					var pixelsPerMeter = Math.sqrt(w * w + h * h) / self._viewSize;
 					var dx = e.clientX - dragStart.x,
@@ -367,9 +367,9 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 	}, {
 		key: 'recomputeViewport',
 		value: function recomputeViewport() {
-			var _document$body2 = document.body;
-			var w = _document$body2.clientWidth;
-			var h = _document$body2.clientHeight;
+			var _document$body2 = document.body,
+			    w = _document$body2.clientWidth,
+			    h = _document$body2.clientHeight;
 
 			// resize canvas
 

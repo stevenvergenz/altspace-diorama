@@ -1,6 +1,8 @@
 'use strict';
 
 {
+	THREE.glTFLoader = THREE.glTFLoader || THREE.GLTFLoader;
+
 	Diorama.ModelPromise = function(url)
 	{
 		return new Promise((resolve, reject) =>
