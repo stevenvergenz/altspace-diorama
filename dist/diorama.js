@@ -101,7 +101,7 @@ var Diorama = function () {
 			// construct dioramas
 			modules.forEach(function (module) {
 				var root = new THREE.Object3D();
-				if (module.position) root.position.set(module.position.x || 0, module.position.y || 0, module.position.z || 0);
+				if (module.transform) root.matrix.fromArray(module.transform);
 				self.scene.add(root);
 
 				if (self.previewCamera) {
