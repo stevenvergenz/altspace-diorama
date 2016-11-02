@@ -2,14 +2,26 @@
 
 Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 {
-	constructor(focus = new THREE.Vector3(), viewSize = 40, lookDirection = new THREE.Vector3(0,-1,0))
+	constructor(focus, viewSize, lookDirection)
 	{
 		super(-1, 1, 1, -1, .1, 400);
 
-		this._viewSize = viewSize;
-		this._focus = focus;
-		this._lookDirection = lookDirection;
+		let settings = window.localStorage.getItem('dioramaViewSettings');
+		if(settings){
+			settings = JSON.parse(settings);
+			if(!focus)
+				focus = new THREE.Vector3().fromArray(settings.focus);
+			if(!viewSize)
+				viewSize = settings.viewSize;
+			if(!lookDirection)
+				lookDirection = new THREE.Vector3().fromArray(settings.lookDirection);
+		}
+
+		this._viewSize = viewSize || 40;
+		this._focus = focus || new THREE.Vector3();
+		this._lookDirection = lookDirection || new THREE.Vector3(0,-1,0);
 		this.gridHelper = new THREE.GridHelper(300, 1);
+		this.gridHelper.quaternion.setFromUnitVectors( new THREE.Vector3(0,-1,0), lookDirection );
 	}
 
 	get viewSize(){
@@ -94,11 +106,11 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		// wheel to zoom
 		window.addEventListener('wheel', e => {
 			if(e.deltaY < 0){
-				self._viewSize *= 0.95;
+				self._viewSize *= 0.90;
 				self.recomputeViewport();
 			}
 			else if(e.deltaY > 0){
-				self._viewSize *= 1.05;
+				self._viewSize *= 1.1;
 				self.recomputeViewport();
 			}
 		});
@@ -116,7 +128,7 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 				self._lookDirection.applyAxisAngle(right, -Math.PI/2);
 				self.gridHelper.rotateOnAxis(right, -Math.PI/2);
 				self.recomputeViewport();
-				
+
 			}
 			else if(e.key === 'ArrowLeft'){
 				self._lookDirection.applyAxisAngle(self.up, -Math.PI/2);
@@ -158,5 +170,11 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		else
 			this.up.set(0,1,0);
 		this.lookAt( this._focus );
+
+		window.localStorage.setItem('dioramaViewSettings', JSON.stringify({
+			focus: this._focus.toArray(),
+			viewSize: this._viewSize,
+			lookDirection: this._lookDirection.toArray()
+		}));
 	}
 }
