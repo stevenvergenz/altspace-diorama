@@ -92,6 +92,9 @@ This is the kickoff point for your diorama. Given the space information (`env`),
 * `root` [Object3D] - The root of your diorama, in meter scale. If you want your diorama placed somewhere in the room other than in the center of the enclosure, set the `root.position`.
 * `assets` [Object] - Contains the `models` and `textures` requested by your diorama. See `assets` below.
 
+#### `position` [Object]
+
+Specify the position of the diorama root with this object, which must have `x`, `y`, and `z` properties.
 
 #### `assets` [Object]
 
@@ -103,7 +106,10 @@ For example, if you wanted to load an OBJ file at './models/mymodel.obj', you mi
 "assets": {
     "models": {
         "mymodel": "./models/mymodel.obj"
-    }
+    },
+	"textures": {
+		"mytexture": "./textures/blah.png"
+	}
 }
 ```
 
