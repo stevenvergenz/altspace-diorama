@@ -189,6 +189,8 @@ var Diorama = function () {
 'use strict';
 
 {
+	THREE.glTFLoader = THREE.glTFLoader || THREE.GLTFLoader;
+
 	Diorama.ModelPromise = function (url) {
 		return new Promise(function (resolve, reject) {
 			// NOTE: glTF loader does not catch errors
@@ -273,7 +275,7 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 		_this._focus = focus || new THREE.Vector3();
 		_this._lookDirection = lookDirection || new THREE.Vector3(0, -1, 0);
 		_this.gridHelper = new THREE.GridHelper(300, 1);
-		_this.gridHelper.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), lookDirection);
+		_this.gridHelper.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), _this._lookDirection);
 		return _this;
 	}
 

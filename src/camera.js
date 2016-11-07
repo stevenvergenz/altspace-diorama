@@ -21,7 +21,7 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		this._focus = focus || new THREE.Vector3();
 		this._lookDirection = lookDirection || new THREE.Vector3(0,-1,0);
 		this.gridHelper = new THREE.GridHelper(300, 1);
-		this.gridHelper.quaternion.setFromUnitVectors( new THREE.Vector3(0,-1,0), lookDirection );
+		this.gridHelper.quaternion.setFromUnitVectors( new THREE.Vector3(0,-1,0), this._lookDirection );
 	}
 
 	get viewSize(){
