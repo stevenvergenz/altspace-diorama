@@ -101,6 +101,10 @@ var Diorama = function () {
 			// construct dioramas
 			modules.forEach(function (module) {
 				var root = new THREE.Object3D();
+				if (module.transform) {
+					root.matrix.fromArray(module.transform);
+					root.matrix.decompose(root.position, root.quaternion, root.scale);
+				}
 				self.scene.add(root);
 
 				if (self.previewCamera) {
@@ -185,8 +189,6 @@ var Diorama = function () {
 'use strict';
 
 {
-	THREE.glTFLoader = THREE.glTFLoader || THREE.GLTFLoader;
-
 	Diorama.ModelPromise = function (url) {
 		return new Promise(function (resolve, reject) {
 			// NOTE: glTF loader does not catch errors
@@ -254,19 +256,24 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 	_inherits(PreviewCamera, _THREE$OrthographicCa);
 
-	function PreviewCamera() {
-		var focus = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : new THREE.Vector3();
-		var viewSize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 40;
-		var lookDirection = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : new THREE.Vector3(0, -1, 0);
-
+	function PreviewCamera(focus, viewSize, lookDirection) {
 		_classCallCheck(this, PreviewCamera);
 
 		var _this = _possibleConstructorReturn(this, (PreviewCamera.__proto__ || Object.getPrototypeOf(PreviewCamera)).call(this, -1, 1, 1, -1, .1, 400));
 
-		_this._viewSize = viewSize;
-		_this._focus = focus;
-		_this._lookDirection = lookDirection;
+		var settings = window.localStorage.getItem('dioramaViewSettings');
+		if (settings) {
+			settings = JSON.parse(settings);
+			if (!focus) focus = new THREE.Vector3().fromArray(settings.focus);
+			if (!viewSize) viewSize = settings.viewSize;
+			if (!lookDirection) lookDirection = new THREE.Vector3().fromArray(settings.lookDirection);
+		}
+
+		_this._viewSize = viewSize || 40;
+		_this._focus = focus || new THREE.Vector3();
+		_this._lookDirection = lookDirection || new THREE.Vector3(0, -1, 0);
 		_this.gridHelper = new THREE.GridHelper(300, 1);
+		_this.gridHelper.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), lookDirection);
 		return _this;
 	}
 
@@ -333,10 +340,10 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 			// wheel to zoom
 			window.addEventListener('wheel', function (e) {
 				if (e.deltaY < 0) {
-					self._viewSize *= 0.95;
+					self._viewSize *= 0.90;
 					self.recomputeViewport();
 				} else if (e.deltaY > 0) {
-					self._viewSize *= 1.05;
+					self._viewSize *= 1.1;
 					self.recomputeViewport();
 				}
 			});
@@ -393,6 +400,12 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 			if (Math.abs(this._lookDirection.normalize().dot(new THREE.Vector3(0, -1, 0))) === 1) this.up.set(0, 0, 1); // if we're looking down the Y axis
 			else this.up.set(0, 1, 0);
 			this.lookAt(this._focus);
+
+			window.localStorage.setItem('dioramaViewSettings', JSON.stringify({
+				focus: this._focus.toArray(),
+				viewSize: this._viewSize,
+				lookDirection: this._lookDirection.toArray()
+			}));
 		}
 	}, {
 		key: 'viewSize',

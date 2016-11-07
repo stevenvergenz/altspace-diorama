@@ -84,6 +84,10 @@ class Diorama
 		modules.forEach(function(module)
 		{
 			var root = new THREE.Object3D();
+			if(module.transform){
+				root.matrix.fromArray(module.transform);
+				root.matrix.decompose(root.position, root.quaternion, root.scale);
+			}
 			self.scene.add(root);
 
 			if(self.previewCamera){
