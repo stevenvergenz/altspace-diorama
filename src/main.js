@@ -122,6 +122,7 @@ class Diorama
 		{
 			window.requestAnimationFrame(animate);
 			self.scene.updateAllBehaviors();
+			if(TWEEN) TWEEN.update();
 			self.renderer.render(self.scene, self.previewCamera);
 		});
 	}
