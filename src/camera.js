@@ -21,7 +21,7 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 		this._focus = focus || new THREE.Vector3();
 		this._lookDirection = lookDirection || new THREE.Vector3(0,-1,0);
 		this.gridHelper = new THREE.GridHelper(300, 1);
-		this.gridHelper.quaternion.setFromUnitVectors( new THREE.Vector3(0,-1,0), this._lookDirection );
+		//this.gridHelper.quaternion.setFromUnitVectors( new THREE.Vector3(0,-1,0), this._lookDirection );
 	}
 
 	get viewSize(){
@@ -120,24 +120,24 @@ Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
 			if(e.key === 'ArrowDown'){
 				let right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
 				self._lookDirection.applyAxisAngle(right, Math.PI/2);
-				self.gridHelper.rotateOnAxis(right, Math.PI/2);
+				//self.gridHelper.rotateOnAxis(right, Math.PI/2);
 				self.recomputeViewport();
 			}
 			else if(e.key === 'ArrowUp'){
 				let right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
 				self._lookDirection.applyAxisAngle(right, -Math.PI/2);
-				self.gridHelper.rotateOnAxis(right, -Math.PI/2);
+				//self.gridHelper.rotateOnAxis(right, -Math.PI/2);
 				self.recomputeViewport();
 
 			}
 			else if(e.key === 'ArrowLeft'){
 				self._lookDirection.applyAxisAngle(self.up, -Math.PI/2);
-				self.gridHelper.rotateOnAxis(self.up, -Math.PI/2);
+				//self.gridHelper.rotateOnAxis(self.up, -Math.PI/2);
 				self.recomputeViewport();
 			}
 			else if(e.key === 'ArrowRight'){
 				self._lookDirection.applyAxisAngle(self.up, Math.PI/2);
-				self.gridHelper.rotateOnAxis(self.up, Math.PI/2);
+				//self.gridHelper.rotateOnAxis(self.up, Math.PI/2);
 				self.recomputeViewport();
 			}
 		});

@@ -92,9 +92,13 @@ This is the kickoff point for your diorama. Given the space information (`env`),
 * `root` [Object3D] - The root of your diorama, in meter scale. If you want your diorama placed somewhere in the room other than in the center of the enclosure, set the `root.position`.
 * `assets` [Object] - Contains the `models` and `textures` requested by your diorama. See `assets` below.
 
-#### `position` [Object]
+#### `transform` [Array]
 
-Specify the position of the diorama root with this object, which must have `x`, `y`, and `z` properties.
+Specify the matrix transformation of the diorama's root, of the form accepted by [THREE.Matrix4.fromArray()](https://threejs.org/docs/#Reference/Math/Matrix4).
+
+#### `verticalAlign` [ "top" | "middle" | "bottom" ]
+
+Specify the vertical position of the root relative to the enclosure. Defaults to "middle".
 
 #### `assets` [Object]
 

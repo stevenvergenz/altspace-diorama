@@ -105,6 +105,24 @@ var Diorama = function () {
 					root.matrix.fromArray(module.transform);
 					root.matrix.decompose(root.position, root.quaternion, root.scale);
 				}
+				if (module.verticalAlign) {
+					var halfHeight = self.env.innerHeight / (2 * self.env.pixelsPerMeter);
+					switch (module.verticalAlign) {
+						case 'top':
+							root.translateY(halfHeight);
+							break;
+						case 'bottom':
+							root.translateY(-halfHeight);
+							break;
+						case 'middle':
+							// default
+							break;
+						default:
+							console.warn('Invalid value for "verticalAlign" - ', module.verticalAlign);
+							break;
+					}
+				}
+
 				self.scene.add(root);
 
 				if (self.previewCamera) {
@@ -275,7 +293,7 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 		_this._focus = focus || new THREE.Vector3();
 		_this._lookDirection = lookDirection || new THREE.Vector3(0, -1, 0);
 		_this.gridHelper = new THREE.GridHelper(300, 1);
-		_this.gridHelper.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), _this._lookDirection);
+		//this.gridHelper.quaternion.setFromUnitVectors( new THREE.Vector3(0,-1,0), this._lookDirection );
 		return _this;
 	}
 
@@ -355,20 +373,20 @@ Diorama.PreviewCamera = function (_THREE$OrthographicCa) {
 				if (e.key === 'ArrowDown') {
 					var right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
 					self._lookDirection.applyAxisAngle(right, Math.PI / 2);
-					self.gridHelper.rotateOnAxis(right, Math.PI / 2);
+					//self.gridHelper.rotateOnAxis(right, Math.PI/2);
 					self.recomputeViewport();
 				} else if (e.key === 'ArrowUp') {
 					var _right = new THREE.Vector3().crossVectors(self._lookDirection, self.up);
 					self._lookDirection.applyAxisAngle(_right, -Math.PI / 2);
-					self.gridHelper.rotateOnAxis(_right, -Math.PI / 2);
+					//self.gridHelper.rotateOnAxis(right, -Math.PI/2);
 					self.recomputeViewport();
 				} else if (e.key === 'ArrowLeft') {
 					self._lookDirection.applyAxisAngle(self.up, -Math.PI / 2);
-					self.gridHelper.rotateOnAxis(self.up, -Math.PI / 2);
+					//self.gridHelper.rotateOnAxis(self.up, -Math.PI/2);
 					self.recomputeViewport();
 				} else if (e.key === 'ArrowRight') {
 					self._lookDirection.applyAxisAngle(self.up, Math.PI / 2);
-					self.gridHelper.rotateOnAxis(self.up, Math.PI / 2);
+					//self.gridHelper.rotateOnAxis(self.up, Math.PI/2);
 					self.recomputeViewport();
 				}
 			});

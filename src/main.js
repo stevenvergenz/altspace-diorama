@@ -88,6 +88,24 @@ class Diorama
 				root.matrix.fromArray(module.transform);
 				root.matrix.decompose(root.position, root.quaternion, root.scale);
 			}
+			if(module.verticalAlign){
+				let halfHeight = self.env.innerHeight/(2*self.env.pixelsPerMeter);
+				switch(module.verticalAlign){
+				case 'top':
+					root.translateY(halfHeight);
+					break;
+				case 'bottom':
+					root.translateY(-halfHeight);
+					break;
+				case 'middle':
+					// default
+					break;
+				default:
+					console.warn('Invalid value for "verticalAlign" - ', module.verticalAlign);
+					break;
+				}
+			}
+
 			self.scene.add(root);
 
 			if(self.previewCamera){
