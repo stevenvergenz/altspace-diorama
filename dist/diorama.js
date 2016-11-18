@@ -98,20 +98,37 @@ var Diorama = function () {
 				}).forEach(checkAsset);
 			});
 
+			// determine if the tracking skeleton is needed
+			var needsSkeleton = modules.reduce(function (ns, m) {
+				return ns || m.needsSkeleton;
+			}, false);
+			if (needsSkeleton && altspace.inClient) {
+				altspace.getThreeJSTrackingSkeleton().then(function (skel) {
+					self.scene.add(skel);
+					self.env.skel = skel;
+				});
+			}
+
 			// construct dioramas
 			modules.forEach(function (module) {
-				var root = module instanceof THREE.Object3D ? module : new THREE.Object3D();
+				var root = null;
 
-				// handle absolute positioning
-				if (module.transform) {
-					root.matrix.fromArray(module.transform);
-					root.matrix.decompose(root.position, root.quaternion, root.scale);
+				if (module instanceof THREE.Object3D) {
+					root = module;
 				} else {
-					if (module.position) {
-						root.position.fromArray(module.position);
-					}
-					if (module.rotation) {
-						root.rotation.fromArray(module.rotation);
+					root = new THREE.Object3D();
+
+					// handle absolute positioning
+					if (module.transform) {
+						root.matrix.fromArray(module.transform);
+						root.matrix.decompose(root.position, root.quaternion, root.scale);
+					} else {
+						if (module.position) {
+							root.position.fromArray(module.position);
+						}
+						if (module.rotation) {
+							root.rotation.fromArray(module.rotation);
+						}
 					}
 				}
 
