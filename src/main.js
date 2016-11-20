@@ -18,18 +18,9 @@ class Diorama
 		if(altspace.inClient)
 		{
 			self.renderer = altspace.getThreeJSRenderer();
-			Promise.all([altspace.getEnclosure(), altspace.getSpace()])
+			self._envPromise = Promise.all([altspace.getEnclosure(), altspace.getSpace()])
 			.then(function([e, s]){
-				self.env = Object.freeze({
-					innerHeight: e.innerHeight,
-					innerWidth: e.innerWidth,
-					innerDepth: e.innerDepth,
-					pixelsPerMeter: e.pixelsPerMeter,
-					sid: s.sid,
-					name: s.name,
-					templateSid: s.templateSid
-				});
-
+				self.env = Object.freeze(Object.assign({}, e, s));
 				self.scene.scale.multiplyScalar(e.pixelsPerMeter);
 			});
 		}
@@ -66,6 +57,11 @@ class Diorama
 	start(...modules)
 	{
 		var self = this;
+
+		// make sure space info is filled out before initialization
+		if(!self.env){
+			return self._envPromise.then(() => { self.start(...modules); });
+		}
 
 		// determine which assets aren't shared
 		var singletons = {};

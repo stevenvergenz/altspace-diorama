@@ -29,21 +29,12 @@ var Diorama = function () {
 		// set up renderer and scale
 		if (altspace.inClient) {
 			self.renderer = altspace.getThreeJSRenderer();
-			Promise.all([altspace.getEnclosure(), altspace.getSpace()]).then(function (_ref2) {
+			self._envPromise = Promise.all([altspace.getEnclosure(), altspace.getSpace()]).then(function (_ref2) {
 				var _ref3 = _slicedToArray(_ref2, 2),
 				    e = _ref3[0],
 				    s = _ref3[1];
 
-				self.env = Object.freeze({
-					innerHeight: e.innerHeight,
-					innerWidth: e.innerWidth,
-					innerDepth: e.innerDepth,
-					pixelsPerMeter: e.pixelsPerMeter,
-					sid: s.sid,
-					name: s.name,
-					templateSid: s.templateSid
-				});
-
+				self.env = Object.freeze(Object.assign({}, e, s));
 				self.scene.scale.multiplyScalar(e.pixelsPerMeter);
 			});
 		} else {
@@ -77,15 +68,21 @@ var Diorama = function () {
 	_createClass(Diorama, [{
 		key: 'start',
 		value: function start() {
-			var self = this;
-
-			// determine which assets aren't shared
-			var singletons = {};
-
 			for (var _len = arguments.length, modules = Array(_len), _key = 0; _key < _len; _key++) {
 				modules[_key] = arguments[_key];
 			}
 
+			var self = this;
+
+			// make sure space info is filled out before initialization
+			if (!self.env) {
+				return self._envPromise.then(function () {
+					self.start.apply(self, modules);
+				});
+			}
+
+			// determine which assets aren't shared
+			var singletons = {};
 			modules.forEach(function (mod) {
 				function checkAsset(url) {
 					if (singletons[url] === undefined) singletons[url] = true;else if (singletons[url] === true) singletons[url] = false;
