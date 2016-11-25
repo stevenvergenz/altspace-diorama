@@ -1,6 +1,6 @@
 'use strict';
 
-Diorama.PreviewCamera = class PreviewCamera extends THREE.OrthographicCamera
+export default class PreviewCamera extends THREE.OrthographicCamera
 {
 	constructor(focus, viewSize, lookDirection)
 	{

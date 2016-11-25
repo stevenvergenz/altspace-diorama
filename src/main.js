@@ -1,6 +1,9 @@
 'use strict';
 
-class Diorama
+import * as Loaders from './loaders';
+import PreviewCamera from './camera';
+
+export default class Diorama
 {
 	constructor({bgColor=0xaaaaaa, gridOffset=new THREE.Vector3()} = {})
 	{
@@ -32,7 +35,7 @@ class Diorama
 			self.renderer.setClearColor( bgColor );
 			document.body.appendChild(self.renderer.domElement);
 		
-			self.previewCamera = new Diorama.PreviewCamera();
+			self.previewCamera = new PreviewCamera();
 			self.previewCamera.gridHelper.position.copy(gridOffset);
 			self.scene.add(self.previewCamera, self.previewCamera.gridHelper);
 			self.previewCamera.registerHooks(self.renderer);
@@ -156,19 +159,20 @@ class Diorama
 	{
 		var self = this;
 
-		function PromisesFinished(arr)
-		{
-			return new Promise((resolve, reject) =>
-			{
-				var waiting = arr.length;
+		class PromisesFinished extends Promise {
+			constructor(arr){
+				super((resolve, reject) =>
+				{
+					var waiting = arr.length;
 				
-				function checkDone(){
-					if(--waiting === 0)
-						resolve();
-				}
+					function checkDone(){
+						if(--waiting === 0)
+							resolve();
+					}
 
-				arr.forEach(p => { p.then(checkDone, checkDone); });
-			});
+					arr.forEach(p => { p.then(checkDone, checkDone); });
+				});
+			}
 		}
 
 		return new Promise((resolve, reject) =>
@@ -183,7 +187,7 @@ class Diorama
 					if(self.assetCache.models[url])
 						return Promise.resolve(self.assetCache.models[url]);
 					else
-						return Diorama.ModelPromise(url).then(model => {
+						return Loaders.ModelPromise(url).then(model => {
 							self.assetCache.models[url] = model;
 						});
 				})),
@@ -195,7 +199,7 @@ class Diorama
 					if(self.assetCache.textures[url])
 						return Promise.resolve(self.assetCache.textures[url]);
 					else
-						return Diorama.TexturePromise(url).then(texture => {
+						return Loaders.TexturePromise(url).then(texture => {
 							self.assetCache.textures[url] = texture;
 						});			
 				}))

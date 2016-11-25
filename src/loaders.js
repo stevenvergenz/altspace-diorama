@@ -111,3 +111,6 @@ class PosterPromise extends Promise {
 		});
 	}
 }
+
+export { ModelPromise, TexturePromise, VideoPromise, PosterPromise };
+
