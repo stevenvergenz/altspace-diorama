@@ -55,7 +55,8 @@ API
 
 * `options` [Object] - An object with any of the following properties:
     * `bgColor` [color] - The background color of the preview. Can be a hexidecimal or a CSS style string. Defaults to `0xAAAAAA`.
-    * `gridOffset` [Vector3] - The preview grid's 3D position. Defaults to [0,0,0].
+    * `gridOffset` [Array] - The preview grid's 3D position. Defaults to [0,0,0].
+	* `fullspace` [boolean] - Tells the app to occupy the full space via `requestFullspace()`.
 
 **Returns**: `Diorama`
 
@@ -119,7 +120,9 @@ For example, if you wanted to load an OBJ file at './models/mymodel.obj', you mi
 
 You would then access this model at `assets.models.mymodel` in your `initialize` function.
 
+#### `needsSkeleton` [Boolean]
 
+Specifies whether the user tracking skeleton is required by the module. If any loaded module requires it, it will be initialized, added to the scene, and passed to the modules via `env.skeleton`. Defaults to `false`.
 
 
 

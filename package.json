@@ -4,7 +4,7 @@
   "description": "System for running multiple micro-apps out of a single AltspaceVR enclosure",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rollup -c rollup.config.js && rollup -c rollup.min.js"
   },
   "repository": {
     "type": "git",

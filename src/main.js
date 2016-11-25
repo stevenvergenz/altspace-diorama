@@ -5,15 +5,9 @@ import PreviewCamera from './camera';
 
 export default class Diorama
 {
-	constructor({bgColor=0xaaaaaa, gridOffset=new THREE.Vector3()} = {})
+	constructor({bgColor=0xaaaaaa, gridOffset=[0,0,0], fullspace=false} = {})
 	{
 		var self = this;
-
-		self.assetCache = {
-			models: {},
-			textures: {},
-			videos: {}
-		};
 
 		self.scene = new THREE.Scene();
 
@@ -25,6 +19,10 @@ export default class Diorama
 			.then(function([e, s]){
 				self.env = Object.freeze(Object.assign({}, e, s));
 				self.scene.scale.multiplyScalar(e.pixelsPerMeter);
+
+				if(fullspace){
+					e.requestFullspace().catch((e) => console.log('Request for fullspace denied'));
+				}
 			});
 		}
 		else
@@ -36,7 +34,7 @@ export default class Diorama
 			document.body.appendChild(self.renderer.domElement);
 		
 			self.previewCamera = new PreviewCamera();
-			self.previewCamera.gridHelper.position.copy(gridOffset);
+			self.previewCamera.gridHelper.position.fromArray(gridOffset);
 			self.scene.add(self.previewCamera, self.previewCamera.gridHelper);
 			self.previewCamera.registerHooks(self.renderer);
 
@@ -48,7 +46,7 @@ export default class Diorama
 				innerWidth: 1024,
 				innerHeight: 1024,
 				innerDepth: 1024,
-				pixelsPerMeter: 1024/3,
+				pixelsPerMeter: fullspace ? 1 : 1024/3,
 				sid: 'browser',
 				name: 'browser',
 				templateSid: 'browser'
@@ -76,6 +74,7 @@ export default class Diorama
 			}
 			Object.keys(mod.assets.textures || {}).map(k => mod.assets.textures[k]).forEach(checkAsset);
 			Object.keys(mod.assets.models || {}).map(k => mod.assets.models[k]).forEach(checkAsset);
+			Object.keys(mod.assets.posters || {}).map(k => mod.assets.posters[k]).forEach(checkAsset);
 		});
 
 		// determine if the tracking skeleton is needed
@@ -92,8 +91,7 @@ export default class Diorama
 		{
 			let root = null;
 			
-			if(module instanceof THREE.Object3D)
-			{
+			if(module instanceof THREE.Object3D){
 				root = module;
 			}
 			else
@@ -159,67 +157,42 @@ export default class Diorama
 	{
 		var self = this;
 
-		class PromisesFinished extends Promise {
-			constructor(arr){
-				super((resolve, reject) =>
-				{
-					var waiting = arr.length;
-				
-					function checkDone(){
-						if(--waiting === 0)
-							resolve();
-					}
-
-					arr.forEach(p => { p.then(checkDone, checkDone); });
-				});
-			}
-		}
-
 		return new Promise((resolve, reject) =>
 		{
 			// populate cache
-			PromisesFinished([
+			Promise.all([
 
 				// populate model cache
-				Promise.all(Object.keys(manifest.models || {}).map(id =>
-				{
-					var url = manifest.models[id];
-					if(self.assetCache.models[url])
-						return Promise.resolve(self.assetCache.models[url]);
-					else
-						return Loaders.ModelPromise(url).then(model => {
-							self.assetCache.models[url] = model;
-						});
-				})),
+				...Object.keys(manifest.models || {}).map(id => Loaders.ModelPromise(manifest.models[id])),
 
 				// populate explicit texture cache
-				Promise.all(Object.keys(manifest.textures || {}).map(id =>
-				{
-					var url = manifest.textures[id];
-					if(self.assetCache.textures[url])
-						return Promise.resolve(self.assetCache.textures[url]);
-					else
-						return Loaders.TexturePromise(url).then(texture => {
-							self.assetCache.textures[url] = texture;
-						});			
-				}))
+				...Object.keys(manifest.textures || {}).map(id => Loaders.TexturePromise(manifest.textures[id])),
+
+				// generate all posters
+				...Object.keys(manifest.posters || {}).map(id => Loaders.PosterPromise(manifest.posters[id]))
 			])
 
 			.then(() =>
 			{
 				// populate payload from cache
-				var payload = {models: {}, textures: {}};
+				var payload = {models: {}, textures: {}, posters: {}};
 
 				for(let i in manifest.models){
 					let url = manifest.models[i];
-					let t = self.assetCache.models[url];
+					let t = Loaders._cache.models[url];
 					payload.models[i] = t ? singletons[url] ? t : t.clone() : null;
 				}
 
 				for(let i in manifest.textures){
 					let url = manifest.textures[i];
-					let t = self.assetCache.textures[url];
+					let t = Loaders._cache.textures[url];
 					payload.textures[i] = t ? singletons[url] ? t : t.clone() : null;
+				}
+
+				for(let i in manifest.posters){
+					let url = manifest.posters[i];
+					let t = Loaders._cache.posters[url];
+					payload.posters[i] = t ? singletons[url] ? t : t.clone() : null;
 				}
 
 				resolve(payload);
