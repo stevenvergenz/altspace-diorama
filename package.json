@@ -1,6 +1,6 @@
 {
   "name": "altspace-diorama",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "System for running multiple micro-apps out of a single AltspaceVR enclosure",
   "main": "index.js",
   "scripts": {
