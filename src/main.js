@@ -8,7 +8,7 @@ export default class Diorama
 	constructor({bgColor=0xaaaaaa, gridOffset=[0,0,0], fullspace=false} = {})
 	{
 		var self = this;
-
+		self._cache = Loaders._cache;
 		self.scene = new THREE.Scene();
 
 		// set up renderer and scale
@@ -196,7 +196,8 @@ export default class Diorama
 				}
 
 				resolve(payload);
-			});
+			})
+			.catch(e => console.error(e));
 		});
 	}
 

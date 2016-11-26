@@ -97,7 +97,7 @@ function PosterPromise(url){
 				}
 			
 				cache.posters[url] = new THREE.Mesh(geo, mat);
-				return Promise.resolve(cache.posters[url]);
+				return resolve(cache.posters[url]);
 			}
 		);
 	});
