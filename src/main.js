@@ -16,12 +16,17 @@ export default class Diorama
 		{
 			self.renderer = altspace.getThreeJSRenderer();
 			self._envPromise = Promise.all([altspace.getEnclosure(), altspace.getSpace()])
-			.then(function([e, s]){
-				self.env = Object.freeze(Object.assign({}, e, s));
-				self.scene.scale.multiplyScalar(e.pixelsPerMeter);
+			.then(([e, s]) => {
+
+				function adjustScale(){
+					self.scene.scale.setScalar(e.pixelsPerMeter);
+					self.env = Object.freeze(Object.assign({}, e, s));
+				}
+				adjustScale();
 
 				if(fullspace){
 					self._fsPromise = e.requestFullspace().catch((e) => console.log('Request for fullspace denied'));
+					e.addEventListener('fullspacechange', adjustScale);
 				}
 				else
 					self._fsPromise = Promise.resolve();
