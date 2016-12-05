@@ -16,13 +16,20 @@ export default class Diorama
 		{
 			self.renderer = altspace.getThreeJSRenderer();
 			self._envPromise = Promise.all([altspace.getEnclosure(), altspace.getSpace()])
-			.then(function([e, s]){
-				self.env = Object.freeze(Object.assign({}, e, s));
-				self.scene.scale.multiplyScalar(e.pixelsPerMeter);
+			.then(([e, s]) => {
+
+				function adjustScale(){
+					self.scene.scale.setScalar(e.pixelsPerMeter);
+					self.env = Object.freeze(Object.assign({}, e, s));
+				}
+				adjustScale();
 
 				if(fullspace){
-					e.requestFullspace().catch((e) => console.log('Request for fullspace denied'));
+					self._fsPromise = e.requestFullspace().catch((e) => console.log('Request for fullspace denied'));
+					e.addEventListener('fullspacechange', adjustScale);
 				}
+				else
+					self._fsPromise = Promise.resolve();
 			});
 		}
 		else
@@ -32,7 +39,7 @@ export default class Diorama
 			self.renderer.setSize(document.body.clientWidth, document.body.clientHeight);
 			self.renderer.setClearColor( bgColor );
 			document.body.appendChild(self.renderer.domElement);
-		
+
 			self.previewCamera = new PreviewCamera();
 			self.previewCamera.gridHelper.position.fromArray(gridOffset);
 			self.scene.add(self.previewCamera, self.previewCamera.gridHelper);
@@ -40,7 +47,7 @@ export default class Diorama
 
 			// set up cursor emulation
 			altspace.utilities.shims.cursor.init(self.scene, self.previewCamera, {renderer: self.renderer});
-		
+
 			// stub environment
 			self.env = Object.freeze({
 				innerWidth: 1024,
@@ -51,18 +58,16 @@ export default class Diorama
 				name: 'browser',
 				templateSid: 'browser'
 			});
+
+			self._envPromise = Promise.resolve();
+			self._fsPromise = Promise.resolve();
 		}
 	}
-		
-		
+
+
 	start(...modules)
 	{
 		var self = this;
-
-		// make sure space info is filled out before initialization
-		if(!self.env){
-			return self._envPromise.then(() => { self.start(...modules); });
-		}
 
 		// determine which assets aren't shared
 		var singletons = {};
@@ -80,69 +85,74 @@ export default class Diorama
 		// determine if the tracking skeleton is needed
 		let needsSkeleton = modules.reduce((ns,m) => ns || m.needsSkeleton, false);
 		if(needsSkeleton && altspace.inClient){
-			altspace.getThreeJSTrackingSkeleton().then(skel => {
+			self._skelPromise = altspace.getThreeJSTrackingSkeleton().then(skel => {
 				self.scene.add(skel);
 				self.env.skel = skel;
 			});
 		}
+		else
+			self._skelPromise = Promise.resolve();
 
-		// construct dioramas
-		modules.forEach(function(module)
+		Promise.all([self._envPromise, self._fsPromise, self._skelPromise]).then(() =>
 		{
-			let root = null;
-			
-			if(module instanceof THREE.Object3D){
-				root = module;
-			}
-			else
+			// construct dioramas
+			modules.forEach(function(module)
 			{
-				root = new THREE.Object3D();
+				let root = null;
 
-				// handle absolute positioning
-				if(module.transform){
-					root.matrix.fromArray(module.transform);
-					root.matrix.decompose(root.position, root.quaternion, root.scale);
+				if(module instanceof THREE.Object3D){
+					root = module;
 				}
-				else {
-					if(module.position){
-						root.position.fromArray(module.position);
+				else
+				{
+					root = new THREE.Object3D();
+
+					// handle absolute positioning
+					if(module.transform){
+						root.matrix.fromArray(module.transform);
+						root.matrix.decompose(root.position, root.quaternion, root.scale);
 					}
-					if(module.rotation){
-						root.rotation.fromArray(module.rotation);
+					else {
+						if(module.position){
+							root.position.fromArray(module.position);
+						}
+						if(module.rotation){
+							root.rotation.fromArray(module.rotation);
+						}
 					}
 				}
-			}
 
-			// handle relative positioning
-			if(module.verticalAlign){
-				let halfHeight = self.env.innerHeight/(2*self.env.pixelsPerMeter);
-				switch(module.verticalAlign){
-				case 'top':
-					root.translateY(halfHeight);
-					break;
-				case 'bottom':
-					root.translateY(-halfHeight);
-					break;
-				case 'middle':
-					// default
-					break;
-				default:
-					console.warn('Invalid value for "verticalAlign" - ', module.verticalAlign);
-					break;
+				// handle relative positioning
+				if(module.verticalAlign){
+					let halfHeight = self.env.innerHeight/(2*self.env.pixelsPerMeter);
+					switch(module.verticalAlign){
+					case 'top':
+						root.translateY(halfHeight);
+						break;
+					case 'bottom':
+						root.translateY(-halfHeight);
+						break;
+					case 'middle':
+						// default
+						break;
+					default:
+						console.warn('Invalid value for "verticalAlign" - ', module.verticalAlign);
+						break;
+					}
 				}
-			}
 
-			self.scene.add(root);
+				self.scene.add(root);
 
-			if(self.previewCamera){
-				root.add( new THREE.AxisHelper(1) );
-			}
-		
-			self.loadAssets(module.assets, singletons).then((results) => {
-				module.initialize(self.env, root, results);
+				if(self.previewCamera){
+					root.add( new THREE.AxisHelper(1) );
+				}
+
+				self.loadAssets(module.assets, singletons).then((results) => {
+					module.initialize(self.env, root, results);
+				});
 			});
 		});
-		
+
 		// start animating
 		window.requestAnimationFrame(function animate(timestamp)
 		{
