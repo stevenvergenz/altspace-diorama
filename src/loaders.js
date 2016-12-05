@@ -19,8 +19,16 @@ function ModelPromise(url)
 					return resolve(cache.models[url]);
 				});
 			}
+			else if(THREE.GLTFLoader){
+				let loader = new THREE.GLTFLoader();
+				loader.load(url, result => {
+					console.log(result);
+					cache.models[url] = result.scene.children[0];
+					return resolve(cache.models[url]);
+				}, null, reject);
+			}
 			else {
-				console.error(`THREE.glTFLoader not found. "${url}" not loaded.`);
+				console.error(`glTF loader not found. "${url}" not loaded.`);
 				reject();
 			}
 		}
@@ -34,7 +42,7 @@ function ModelPromise(url)
 				}, null, reject);
 			}
 			else {
-				console.error(`THREE.ColladaLoader not found. "${url}" not loaded.`);
+				console.error(`Collada loader not found. "${url}" not loaded.`);
 				reject();
 			}
 		}
@@ -95,7 +103,7 @@ function PosterPromise(url){
 				else {
 					geo = new THREE.PlaneGeometry(ratio, 1);
 				}
-			
+
 				cache.posters[url] = new THREE.Mesh(geo, mat);
 				return resolve(cache.posters[url]);
 			}
@@ -104,4 +112,3 @@ function PosterPromise(url){
 }
 
 export { ModelPromise, TexturePromise, VideoPromise, PosterPromise, cache as _cache };
-
