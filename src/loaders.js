@@ -22,8 +22,8 @@ function ModelPromise(url)
 			else if(THREE.GLTFLoader){
 				let loader = new THREE.GLTFLoader();
 				loader.load(url, result => {
-					console.log(result);
 					cache.models[url] = result.scene.children[0];
+					cache.models[url].matrixAutoUpdate = true;
 					return resolve(cache.models[url]);
 				}, null, reject);
 			}
