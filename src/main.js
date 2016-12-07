@@ -144,7 +144,9 @@ export default class Diorama
 				self.scene.add(root);
 
 				if(self.previewCamera){
-					root.add( new THREE.AxisHelper(1) );
+					let axis = new THREE.AxisHelper(1);
+					axis.userData.altspace = {collider: {enabled: false}};
+					root.add(axis);
 				}
 
 				self.loadAssets(module.assets, singletons).then((results) => {
