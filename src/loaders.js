@@ -25,7 +25,7 @@ function ModelPromise(url)
 					cache.models[url] = result.scene.children[0];
 					cache.models[url].matrixAutoUpdate = true;
 					return resolve(cache.models[url]);
-				}, null, reject);
+				}, () => {}, reject);
 			}
 			else {
 				console.error(`glTF loader not found. "${url}" not loaded.`);
