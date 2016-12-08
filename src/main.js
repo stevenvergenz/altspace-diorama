@@ -25,7 +25,7 @@ export default class Diorama
 				adjustScale();
 
 				if(fullspace){
-					self._fsPromise = e.requestFullspace().catch((e) => console.log('Request for fullspace denied'));
+					self._fsPromise = e.requestFullspace().catch((e) => console.warn('Request for fullspace denied'));
 					e.addEventListener('fullspacechange', adjustScale);
 				}
 				else
