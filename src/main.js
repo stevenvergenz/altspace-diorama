@@ -20,7 +20,7 @@ export default class Diorama
 
 				function adjustScale(){
 					self.scene.scale.setScalar(e.pixelsPerMeter);
-					self.env = Object.freeze(Object.assign({}, e, s));
+					self.env = Object.assign({}, e, s);
 				}
 				adjustScale();
 
@@ -49,7 +49,7 @@ export default class Diorama
 			altspace.utilities.shims.cursor.init(self.scene, self.previewCamera, {renderer: self.renderer});
 
 			// stub environment
-			self.env = Object.freeze({
+			self.env = {
 				innerWidth: 1024,
 				innerHeight: 1024,
 				innerDepth: 1024,
@@ -57,7 +57,7 @@ export default class Diorama
 				sid: 'browser',
 				name: 'browser',
 				templateSid: 'browser'
-			});
+			};
 
 			self._envPromise = Promise.resolve();
 			self._fsPromise = Promise.resolve();
@@ -88,10 +88,13 @@ export default class Diorama
 			self._skelPromise = altspace.getThreeJSTrackingSkeleton().then(skel => {
 				self.scene.add(skel);
 				self.env.skel = skel;
+				self.env = Object.freeze(self.env);
 			});
 		}
-		else
+		else {
+			self.env = Object.freeze(self.env);
 			self._skelPromise = Promise.resolve();
+		}
 
 		Promise.all([self._envPromise, self._fsPromise, self._skelPromise]).then(() =>
 		{
