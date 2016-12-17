@@ -24,6 +24,12 @@ function ModelPromise(url)
 				loader.load(url, result => {
 					cache.models[url] = result.scene.children[0];
 					cache.models[url].matrixAutoUpdate = true;
+					/*result.scene.traverse((o) => {
+						if(o.material && o.material.map)
+							console.log('flipY', o.material.map.flipY);
+					});*/
+
+
 					return resolve(cache.models[url]);
 				}, () => {}, reject);
 			}

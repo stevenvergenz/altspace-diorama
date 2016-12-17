@@ -212,7 +212,7 @@ export default class Diorama
 
 				resolve(payload);
 			})
-			.catch(e => console.error(e));
+			.catch(e => console.error(e.stack));
 		});
 	}
 
