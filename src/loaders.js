@@ -1,5 +1,34 @@
 'use strict';
 
+function getTexture (url, resolve) {
+	// construct absolute url
+	if (url && !url.startsWith('http') && !url.startsWith('//')) {
+		if (url.startsWith('/')) {
+			url = location.origin + url;
+		}
+		else {
+			var currPath = location.pathname;
+			if (!currPath.endsWith('/')) {
+				currPath = location.pathname.split('/').slice(0, -1).join('/') + '/';
+			}
+			url = location.origin + currPath + url;
+		}
+	}
+	console.info('Allowing Altspace to load ' + url);
+	var image = {src: url};
+	var tex = new THREE.Texture(image);
+	if (resolve) {
+		resolve(tex);
+	}
+	return tex;
+}
+
+if(altspace.inClient)
+{
+	THREE.Loader.Handlers.add(/jpe?g|png/i, { load: getTexture });
+	THREE.TextureLoader.prototype.load = getTexture;
+}
+
 let cache = {models: {}, textures: {}, posters: {}};
 
 function ModelPromise(url)
