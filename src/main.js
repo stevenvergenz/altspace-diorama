@@ -88,7 +88,7 @@ export default class Diorama
 			self._skelPromise = Promise.all([
 				altspace.getThreeJSTrackingSkeleton(),
 				self._envPromise
-			]).then(skel => {
+			]).then((skel, _) => {
 				self.scene.add(skel);
 				self.env.skel = skel;
 				self.env = Object.freeze(self.env);
