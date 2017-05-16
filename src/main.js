@@ -5,7 +5,7 @@ import PreviewCamera from './camera';
 
 export default class Diorama
 {
-	constructor({bgColor=0xaaaaaa, gridOffset=[0,0,0], fullspace=false} = {})
+	constructor({bgColor=0xaaaaaa, gridOffset=[0,0,0], fullspace=false, rendererOptions={}} = {})
 	{
 		var self = this;
 		self._cache = Loaders._cache;
@@ -14,7 +14,7 @@ export default class Diorama
 		// set up renderer and scale
 		if(altspace.inClient)
 		{
-			self.renderer = altspace.getThreeJSRenderer();
+			self.renderer = altspace.getThreeJSRenderer(rendererOptions);
 			self._envPromise = Promise.all([altspace.getEnclosure(), altspace.getSpace()])
 			.then(([e, s]) => {
 
