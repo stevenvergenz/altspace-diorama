@@ -1,6 +1,11 @@
 'use strict';
 
-function getTexture (url, resolve) {
+let originalGetTexture = THREE.TextureLoader.prototype.load;
+
+function getTexture (url, resolve)
+{
+	if(this.forceLoad) return originalGetTexture.call(this, url, resolve);
+
 	// construct absolute url
 	if (url && !url.startsWith('http') && !url.startsWith('//')) {
 		if (url.startsWith('/')) {
@@ -85,13 +90,14 @@ function ModelPromise(url)
 	});
 }
 
-function TexturePromise(url){
+function TexturePromise(url, config = {forceLoad: false}){
 	return new Promise((resolve, reject) =>
 	{
 		if(cache.textures[url])
 			return resolve(cache.textures[url]);
 		else {
 			let loader = new THREE.TextureLoader();
+			loader.forceLoad = config.forceLoad;
 			loader.load(url, texture => {
 				cache.textures[url] = texture;
 				return resolve(texture);
@@ -128,7 +134,7 @@ function PosterPromise(url){
 	{
 		if(cache.posters[url])
 			return resolve(cache.posters[url]);
-		else return (new TexturePromise(url)).then(tex =>
+		else return (new TexturePromise(url, {forceLoad: true})).then(tex =>
 			{
 				let ratio = tex.image.width / tex.image.height;
 				let geo, mat = new THREE.MeshBasicMaterial({map: tex, side: THREE.DoubleSide});
