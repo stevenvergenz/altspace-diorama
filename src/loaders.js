@@ -29,12 +29,30 @@ function ModelPromise(url)
 							console.log('flipY', o.material.map.flipY);
 					});*/
 
-
 					return resolve(cache.models[url]);
 				}, () => {}, reject);
 			}
 			else {
 				console.error(`glTF loader not found. "${url}" not loaded.`);
+				reject();
+			}
+		}
+
+		else if(/\.obj$/i.test(url)){
+			if(THREE.OBJLoader){
+				let loader = new THREE.OBJLoader();
+				loader.load(url, model => {
+					cache.models[url] = model;
+					let matPromises = model.materialLibraries.map(url => new MTLLoader(url));
+					Promise.all(matPromises).then(mats => {
+						console.log(mats);
+					});
+
+					return resolve(model);
+				}, undefined, reject);
+			}
+			else {
+				console.error(`OBJ loader not found. "${url}" not loaded.`);
 				reject();
 			}
 		}
@@ -52,6 +70,22 @@ function ModelPromise(url)
 				reject();
 			}
 		}
+
+		else {
+			console.error('Unrecognized model extension:', url);
+			reject();
+		}
+	});
+}
+
+function MTLPromise(url){
+	return new Promise((resolve, reject) =>
+	{
+		let loader = new THREE.MTLLoader();
+		loader.load(url, (...args) => {
+			console.log(args);
+			reject();
+		}, undefined, reject);
 	});
 }
 
