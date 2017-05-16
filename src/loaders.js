@@ -25,7 +25,8 @@ function getTexture (url, resolve) {
 
 if(altspace.inClient)
 {
-	THREE.Loader.Handlers.add(/jpe?g|png/i, { load: getTexture });
+	let noop = () => {};
+	THREE.Loader.Handlers.add(/jpe?g|png/i, { load: getTexture, setCrossOrigin: noop });
 	THREE.TextureLoader.prototype.load = getTexture;
 }
 
