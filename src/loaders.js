@@ -129,14 +129,17 @@ class VideoPromise extends Promise {
 	}
 }
 
-function PosterPromise(url){
+function PosterPromise(url, ratio = -1){
 	return new Promise((resolve, reject) =>
 	{
-		if(cache.posters[url])
+		if(cache.posters[url]){
 			return resolve(cache.posters[url]);
-		else return (new TexturePromise(url, {forceLoad: true})).then(tex =>
+		}
+		else return (new TexturePromise(url, {forceLoad: ratio < 0})).then(tex =>
 			{
-				let ratio = tex.image.width / tex.image.height;
+				if(ratio < 0)
+					ratio = tex.image.width / tex.image.height;
+
 				let geo, mat = new THREE.MeshBasicMaterial({map: tex, side: THREE.DoubleSide});
 
 				if(ratio > 1){
