@@ -85,14 +85,19 @@ export default class Diorama
 		// determine if the tracking skeleton is needed
 		let needsSkeleton = modules.reduce((ns,m) => ns || m.needsSkeleton, false);
 		if(needsSkeleton && altspace.inClient){
-			self._skelPromise = altspace.getThreeJSTrackingSkeleton().then(skel => {
+			self._skelPromise = Promise.all([
+				altspace.getThreeJSTrackingSkeleton(),
+				self._envPromise
+			]).then(skel => {
 				self.scene.add(skel);
 				self.env.skel = skel;
 				self.env = Object.freeze(self.env);
 			});
 		}
 		else {
-			self.env = Object.freeze(self.env);
+			self._envPromise.then(() => {
+				self.env = Object.freeze(self.env);
+			});
 			self._skelPromise = Promise.resolve();
 		}
 
