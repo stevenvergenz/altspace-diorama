@@ -3,6 +3,17 @@
 import * as Loaders from './loaders';
 import PreviewCamera from './camera';
 
+function ResolveButComplain(data, promise)
+{
+	return promise.then(
+		result => Promise.resolve(result),
+		err => {
+			console.error('Failed to load', data, '\n', err.stack);
+			return Promise.resolve();
+		}
+	);
+}
+
 export default class Diorama
 {
 	constructor({bgColor=0xaaaaaa, gridOffset=[0,0,0], fullspace=false, rendererOptions={}} = {})
@@ -183,13 +194,13 @@ export default class Diorama
 			Promise.all([
 
 				// populate model cache
-				...Object.keys(manifest.models || {}).map(id => Loaders.ModelPromise(manifest.models[id])),
+				...Object.keys(manifest.models || {}).map(id => ResolveButComplain(id, Loaders.ModelPromise(manifest.models[id]))),
 
 				// populate explicit texture cache
-				...Object.keys(manifest.textures || {}).map(id => Loaders.TexturePromise(manifest.textures[id])),
+				...Object.keys(manifest.textures || {}).map(id => ResolveButComplain(id, Loaders.TexturePromise(manifest.textures[id]))),
 
 				// generate all posters
-				...Object.keys(manifest.posters || {}).map(id => Loaders.PosterPromise(manifest.posters[id]))
+				...Object.keys(manifest.posters || {}).map(id => ResolveButComplain(id, Loaders.PosterPromise(manifest.posters[id])))
 			])
 
 			.then(() =>
