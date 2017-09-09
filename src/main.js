@@ -179,7 +179,7 @@ export default class Diorama
 		{
 			window.requestAnimationFrame(animate);
 			self.scene.updateAllBehaviors();
-			if(window.TWEEN) TWEEN.update();
+			if(window.TWEEN) TWEEN.update(timestamp);
 			self.renderer.render(self.scene, self.previewCamera);
 		});
 	}
